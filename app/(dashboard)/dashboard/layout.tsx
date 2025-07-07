@@ -28,9 +28,9 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-68px)] max-w-7xl mx-auto w-full">
+    <div className="flex flex-col h-full max-w-7xl mx-auto w-full">
       {/* Mobile header */}
-      <div className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 p-4">
+      <div className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 p-4 flex-shrink-0">
         <div className="flex items-center">
           <span className="font-medium">Workspace</span>
         </div>
@@ -44,7 +44,7 @@ export default function DashboardLayout({
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden h-full">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Sidebar */}
         <aside
           className={`w-64 bg-white lg:bg-gray-50 border-r border-gray-200 lg:block ${

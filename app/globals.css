@@ -79,6 +79,37 @@
   body {
     font-family: "Manrope", Arial, Helvetica, sans-serif;
   }
+  
+  /* Custom scrollbar for email list */
+  .email-list-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .email-list-scrollbar::-webkit-scrollbar-track {
+    background: rgb(243 244 246);
+    border-radius: 3px;
+  }
+  
+  .email-list-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219);
+    border-radius: 3px;
+  }
+  
+  .email-list-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+  
+  /* Smooth scrolling for better UX */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Performance optimizations for scrolling */
+  .scroll-performance {
+    will-change: scroll-position;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
 }
 
 @layer base {

@@ -1,0 +1,20 @@
+给一份邮件添加一个 draft 功能。
+
+draft with chat。左边 chat，右边 view。
+
+发送邮件到 backend api。
+
+
+api 处理。
+    api 收到邮件，后台运行的是，收到邮件，处理邮件，可用mail_MCP。
+
+MCP Server 处理。（就是一个带详细 prompt 的 LLM complement）
+    很长的 prompt。
+
+
+
+
+
+
+
+

@@ -281,6 +281,231 @@ export class ImapEmailService implements EmailService {
     });
   }
 
+  async fetchEmailsNewerThan(folder: string, uid: number): Promise<EmailMessage[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected) {
+        reject(new Error('Not connected to IMAP server'));
+        return;
+      }
+
+      this.imap.openBox(folder, false, (err, box) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (!box || box.messages.total === 0) {
+          resolve([]);
+          return;
+        }
+
+        // Search for messages with UID greater than the specified UID
+        this.imap.search([['UID', `${uid + 1}:*`]], (err, results) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          if (!results || results.length === 0) {
+            resolve([]);
+            return;
+          }
+
+          const emails: EmailMessage[] = [];
+          let processedCount = 0;
+
+          const fetch = this.imap.fetch(results, {
+            bodies: '',
+            struct: true,
+            envelope: true,
+            markSeen: false
+          });
+
+          fetch.on('message', (msg, seqno) => {
+            let buffer = '';
+            let attrs: any;
+
+            msg.on('body', (stream) => {
+              stream.on('data', (chunk) => {
+                buffer += chunk.toString('utf8');
+              });
+            });
+
+            msg.once('attributes', (attributes) => {
+              attrs = attributes;
+            });
+
+            msg.once('end', async () => {
+              try {
+                const parsed: ParsedMail = await simpleParser(buffer);
+                const email = EmailParser.parseEmail(parsed, attrs);
+                emails.push(email);
+                processedCount++;
+
+                if (processedCount === results.length) {
+                  emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                  resolve(emails);
+                }
+              } catch (parseError) {
+                console.error('Error parsing email:', parseError);
+                processedCount++;
+                if (processedCount === results.length) {
+                  emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                  resolve(emails);
+                }
+              }
+            });
+          });
+
+          fetch.once('error', (err) => {
+            reject(err);
+          });
+
+          fetch.once('end', () => {
+            if (processedCount === 0) {
+              resolve([]);
+            }
+          });
+        });
+      });
+    });
+  }
+
+  async fetchEmailBody(folder: string, uid: number): Promise<{ text?: string; html?: string }> {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected) {
+        reject(new Error('Not connected to IMAP server'));
+        return;
+      }
+
+      this.imap.openBox(folder, false, (err, box) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const fetch = this.imap.fetch([uid], {
+          bodies: '',
+          struct: true,
+          markSeen: false
+        });
+
+        fetch.on('message', (msg, seqno) => {
+          let buffer = '';
+
+          msg.on('body', (stream) => {
+            stream.on('data', (chunk) => {
+              buffer += chunk.toString('utf8');
+            });
+          });
+
+          msg.once('end', async () => {
+            try {
+              const parsed: ParsedMail = await simpleParser(buffer);
+              resolve({
+                text: parsed.text || undefined,
+                html: parsed.html || undefined
+              });
+            } catch (parseError) {
+              console.error('Error parsing email body:', parseError);
+              reject(parseError);
+            }
+          });
+        });
+
+        fetch.once('error', (err) => {
+          reject(err);
+        });
+      });
+    });
+  }
+
+  async markAsFlagged(folder: string, uid: number, flagged: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected) {
+        reject(new Error('Not connected to IMAP server'));
+        return;
+      }
+
+      this.imap.openBox(folder, false, (err, box) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const operation = flagged 
+          ? this.imap.addFlags.bind(this.imap)
+          : this.imap.delFlags.bind(this.imap);
+
+        operation([uid], ['\\Flagged'], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+  }
+
+  async markAsReadInFolder(folder: string, uid: number, isRead: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected) {
+        reject(new Error('Not connected to IMAP server'));
+        return;
+      }
+
+      this.imap.openBox(folder, false, (err, box) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const operation = isRead 
+          ? this.imap.addFlags.bind(this.imap)
+          : this.imap.delFlags.bind(this.imap);
+
+        operation([uid], ['\\Seen'], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+  }
+
+  async deleteEmailInFolder(folder: string, uid: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected) {
+        reject(new Error('Not connected to IMAP server'));
+        return;
+      }
+
+      this.imap.openBox(folder, false, (err, box) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        this.imap.addFlags([uid], ['\\Deleted'], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            this.imap.expunge((expungeErr) => {
+              if (expungeErr) {
+                reject(expungeErr);
+              } else {
+                resolve();
+              }
+            });
+          }
+        });
+      });
+    });
+  }
+
   getConnectionStatus() {
     return {
       connected: this.isConnected,

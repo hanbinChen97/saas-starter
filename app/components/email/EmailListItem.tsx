@@ -31,7 +31,7 @@ export function EmailListItem({ email, isSelected, onClick }: EmailListItemProps
   return (
     <div
       onClick={onClick}
-      className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ${
+      className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors will-change-transform ${
         isSelected ? 'bg-blue-50 border-r-2 border-r-blue-500' : ''
       } ${
         !email.isRead ? 'bg-blue-25 border-l-2 border-l-blue-500' : ''

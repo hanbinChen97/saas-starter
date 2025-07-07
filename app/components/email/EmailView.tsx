@@ -2,14 +2,40 @@
 
 import { EmailMessage } from '@/app/lib/email/types';
 import { EmailParser } from '@/app/lib/email/email-parser';
-import { markEmailAsRead, markEmailAsUnread, deleteEmail } from '@/app/lib/email/actions';
+import { useState, useEffect } from 'react';
+import { useMailCache } from '@/app/hooks/useMailCache';
 
 interface EmailViewProps {
   email: EmailMessage | null;
   onUpdate?: () => void;
+  onMarkAsRead?: (isRead: boolean) => Promise<void>;
+  onMarkAsFlagged?: (isFlagged: boolean) => Promise<void>;
+  onDelete?: () => Promise<void>;
 }
 
-export function EmailView({ email, onUpdate }: EmailViewProps) {
+export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDelete }: EmailViewProps) {
+  const [emailBody, setEmailBody] = useState<{ text?: string; html?: string } | null>(null);
+  const [loadingBody, setLoadingBody] = useState(false);
+  const { getEmailBody } = useMailCache();
+
+  // Load email body when email changes
+  useEffect(() => {
+    if (email && (!email.html && !email.text)) {
+      setLoadingBody(true);
+      getEmailBody(email.id, email.uid)
+        .then((body) => {
+          setEmailBody(body);
+        })
+        .catch((error) => {
+          console.error('Failed to load email body:', error);
+        })
+        .finally(() => {
+          setLoadingBody(false);
+        });
+    } else {
+      setEmailBody(null);
+    }
+  }, [email, getEmailBody]);
   if (!email) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -31,48 +57,61 @@ export function EmailView({ email, onUpdate }: EmailViewProps) {
   });
 
   const handleMarkAsRead = async () => {
-    try {
-      const result = await markEmailAsRead(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to mark email as read:', result.error);
+    if (onMarkAsRead) {
+      try {
+        await onMarkAsRead(true);
+        onUpdate?.();
+      } catch (error) {
+        console.error('Failed to mark email as read:', error);
       }
-    } catch (error) {
-      console.error('Failed to mark email as read:', error);
     }
   };
 
   const handleMarkAsUnread = async () => {
-    try {
-      const result = await markEmailAsUnread(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to mark email as unread:', result.error);
+    if (onMarkAsRead) {
+      try {
+        await onMarkAsRead(false);
+        onUpdate?.();
+      } catch (error) {
+        console.error('Failed to mark email as unread:', error);
       }
-    } catch (error) {
-      console.error('Failed to mark email as unread:', error);
+    }
+  };
+
+  const handleMarkAsFlagged = async () => {
+    if (onMarkAsFlagged) {
+      try {
+        await onMarkAsFlagged(!email.isFlagged);
+        onUpdate?.();
+      } catch (error) {
+        console.error('Failed to toggle flag:', error);
+      }
     }
   };
 
   const handleDelete = async () => {
-    try {
-      const result = await deleteEmail(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to delete email:', result.error);
+    if (onDelete) {
+      try {
+        await onDelete();
+        onUpdate?.();
+      } catch (error) {
+        console.error('Failed to delete email:', error);
       }
-    } catch (error) {
-      console.error('Failed to delete email:', error);
     }
   };
 
+  // Get the email content to display
+  const getEmailContent = () => {
+    if (email.html || email.text) {
+      return { html: email.html, text: email.text };
+    }
+    return emailBody;
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white overflow-hidden">
       {/* Email Header */}
-      <div className="border-b border-gray-200 p-6">
+      <div className="border-b border-gray-200 p-6 flex-shrink-0">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-gray-900 mb-2">
@@ -95,7 +134,7 @@ export function EmailView({ email, onUpdate }: EmailViewProps) {
             )}
             {email.isFlagged && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Flagged
+                ⭐ Flagged
               </span>
             )}
           </div>
@@ -108,6 +147,12 @@ export function EmailView({ email, onUpdate }: EmailViewProps) {
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
             {email.isRead ? 'Mark as unread' : 'Mark as read'}
+          </button>
+          <button
+            onClick={handleMarkAsFlagged}
+            className="text-sm text-yellow-600 hover:text-yellow-800 font-medium"
+          >
+            {email.isFlagged ? 'Unflag' : 'Flag'}
           </button>
           <button
             onClick={handleDelete}
@@ -137,16 +182,33 @@ export function EmailView({ email, onUpdate }: EmailViewProps) {
       </div>
 
       {/* Email Content */}
-      <div className="flex-1 overflow-auto p-6">
-        <div className="prose max-w-none">
-          {email.html ? (
-            <div dangerouslySetInnerHTML={{ __html: email.html }} />
-          ) : (
-            <pre className="whitespace-pre-wrap font-sans text-gray-900 leading-relaxed">
-              {email.text}
-            </pre>
-          )}
-        </div>
+      <div className="flex-1 overflow-auto p-6 email-list-scrollbar smooth-scroll scroll-performance">
+        {loadingBody ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-gray-500">Loading email content...</div>
+          </div>
+        ) : (
+          <div className="prose max-w-none">
+            {(() => {
+              const content = getEmailContent();
+              if (content?.html) {
+                return <div dangerouslySetInnerHTML={{ __html: content.html }} />;
+              } else if (content?.text) {
+                return (
+                  <pre className="whitespace-pre-wrap font-sans text-gray-900 leading-relaxed">
+                    {content.text}
+                  </pre>
+                );
+              } else {
+                return (
+                  <div className="text-gray-500 text-center py-8">
+                    No content available for this email.
+                  </div>
+                );
+              }
+            })()}
+          </div>
+        )}
 
         {/* Attachments */}
         {email.attachments.length > 0 && (

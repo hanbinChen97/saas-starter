@@ -1,15 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/app/components/ui/button';
+import { Avatar, AvatarFallback } from '@/app/components/ui/avatar';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle
-} from '@/components/ui/card';
+} from '@/app/components/ui/card';
 import { useActionState } from 'react';
-import { TeamDataWithMembers, User } from '@/lib/db/schema';
+import { TeamDataWithMembers, User } from '@/app/lib/db/schema';
 import { removeTeamMember } from '@/app/(login)/actions';
 import useSWR from 'swr';
 import { Suspense } from 'react';

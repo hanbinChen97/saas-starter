@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield, Mail } from 'lucide-react';
 
 export default function DashboardLayout({
   children
@@ -16,7 +16,8 @@ export default function DashboardLayout({
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
   const navItems = [
-    { href: '/dashboard/workspace', icon: Briefcase, label: 'Workspace' }
+    { href: '/dashboard/workspace', icon: Briefcase, label: 'Workspace' },
+    { href: '/dashboard/emails', icon: Mail, label: 'Emails' }
   ];
 
   const settingsSubItems = [
@@ -111,7 +112,7 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-0 lg:p-4">{children}</main>
+        <main className="flex-1 overflow-hidden flex flex-col">{children}</main>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from '@/lib/db/drizzle';
+import { db } from '@/app/lib/db/drizzle';
 import {
   User,
   users,
@@ -15,16 +15,16 @@ import {
   type NewActivityLog,
   ActivityType,
   invitations
-} from '@/lib/db/schema';
-import { comparePasswords, hashPassword, setSession } from '@/lib/auth/session';
+} from '@/app/lib/db/schema';
+import { comparePasswords, hashPassword, setSession } from '@/app/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { createCheckoutSession } from '@/lib/payments/stripe';
-import { getUser, getUserWithTeam } from '@/lib/db/queries';
+import { createCheckoutSession } from '@/app/lib/payments/stripe';
+import { getUser, getUserWithTeam } from '@/app/lib/db/queries';
 import {
   validatedAction,
   validatedActionWithUser
-} from '@/lib/auth/middleware';
+} from '@/app/lib/auth/middleware';
 
 async function logActivity(
   teamId: number | null | undefined,

@@ -117,3 +117,18 @@ While this template is intentionally minimal and to be used as a learning resour
 - https://makerkit.dev
 - https://zerotoshipped.com
 - https://turbostarter.dev
+
+
+EXCHANGE_USERNAME=example@example.com
+EXCHANGE_PASSWORD=xxxx
+RWTH_MAIL_SERVER=mail.rwth-aachen.de
+RWTH_MAIL_SERVER_PORT=993
+RWTH_MAIL_SERVER_ENCRYPTION=SSL
+
+
+
+
+
+
+
+EXCHANGE_USERNAME=example@example.com

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import { ArrowRight, CreditCard, Database } from 'lucide-react';
 import { Terminal } from './terminal';
 

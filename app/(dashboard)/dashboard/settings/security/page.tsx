@@ -5,8 +5,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
 import { Shield, Lock, Key, AlertTriangle } from 'lucide-react';
 
 export default function SecuritySettingsPage() {

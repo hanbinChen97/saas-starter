@@ -1,14 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle
-} from '@/components/ui/card';
-import { customerPortalAction } from '@/lib/payments/actions';
-import { TeamDataWithMembers } from '@/lib/db/schema';
+} from '@/app/components/ui/card';
+import { customerPortalAction } from '@/app/lib/payments/actions';
+import { TeamDataWithMembers } from '@/app/lib/db/schema';
 import useSWR from 'swr';
 import { Suspense } from 'react';
 

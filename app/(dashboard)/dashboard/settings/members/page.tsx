@@ -1,21 +1,21 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardFooter
-} from '@/components/ui/card';
+} from '@/app/components/ui/card';
 import { useActionState } from 'react';
-import { User } from '@/lib/db/schema';
+import { User } from '@/app/lib/db/schema';
 import { inviteTeamMember } from '@/app/(login)/actions';
 import useSWR from 'swr';
 import { Suspense } from 'react';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/app/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { Label } from '@/app/components/ui/label';
 import { Loader2, PlusCircle } from 'lucide-react';
 
 type ActionState = {

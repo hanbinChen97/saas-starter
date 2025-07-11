@@ -3,6 +3,8 @@ import { simpleParser, ParsedMail } from 'mailparser';
 import { EmailMessage, EmailFolder, EmailFetchOptions, EmailConnectionConfig, EmailService } from './types';
 import { EmailParser } from './email-parser';
 
+export { ImapEmailService };
+
 export class ImapEmailService implements EmailService {
   private imap: Imap;
   private config: EmailConnectionConfig;

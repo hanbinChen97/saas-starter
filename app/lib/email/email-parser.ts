@@ -41,7 +41,7 @@ export class EmailParser {
       from: fromAddress,
       to: toList,
       cc: ccList.length > 0 ? ccList : undefined,
-      date: parsed.date || new Date(),
+      date: parsed.date instanceof Date ? parsed.date : new Date(parsed.date || Date.now()),
       text: parsed.text || '',
       html: typeof parsed.html === 'string' ? parsed.html : (parsed.html ? String(parsed.html) : undefined),
       attachments,

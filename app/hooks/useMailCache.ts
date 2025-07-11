@@ -2,16 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { EmailMessage, EmailFolder } from '@/app/lib/email/types';
-import { EmailCache } from '@/app/lib/email/database';
-import { 
-  getFoldersAction,
-  getEmailsAction,
-  getEmailsNewerThanAction,
-  getEmailBodyAction,
-  markAsReadAction,
-  markAsFlaggedAction,
-  deleteEmailAction
-} from '@/app/lib/email/server-actions';
+import { EmailCache, emailDB } from '@/app/lib/email/database';
+import { emailApi } from '@/app/lib/email/api-client';
 
 interface UseMailCacheOptions {
   folder?: string;
@@ -46,6 +38,7 @@ interface UseMailCacheReturn {
     oldestEmail?: string;
     newestEmail?: string;
   }>;
+  smartSync: () => Promise<void>;
 }
 
 export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheReturn {
@@ -53,7 +46,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     folder = 'INBOX',
     limit = 50,
     autoSync = true,
-    syncInterval = 5 * 60 * 1000 // 5 minutes
+    syncInterval = 2 * 60 * 1000 // 2 minutes
   } = options;
 
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -102,10 +95,46 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
       if (syncInfo) {
         // Incremental sync: only get emails newer than last sync
-        newEmails = await getEmailsNewerThanAction(folder, syncInfo.lastUid);
+        console.log(`[Sync] Incremental sync from UID ${syncInfo.lastUid} for folder ${folder}`);
+        console.log(`[Sync] Last sync time: ${syncInfo.lastSyncTime}`);
+        try {
+          newEmails = await emailApi.getEmailsNewerThan(folder, syncInfo.lastUid);
+          console.log(`[Sync] Found ${newEmails.length} new emails`);
+        } catch (actionError) {
+          console.error('[Sync] API error, falling back to full sync:', actionError);
+          newEmails = await emailApi.getEmails(folder, currentLimit);
+          console.log(`[Sync] Fallback: Retrieved ${newEmails.length} emails`);
+        }
+        
+        // If no new emails found, let's also try a different approach
+        if (newEmails.length === 0) {
+          console.log(`[Sync] No new emails with UID approach, trying recent emails check`);
+          try {
+            // Get a few recent emails to compare
+            const recentEmails = await emailApi.getEmails(folder, 10);
+            
+            // Check if any of these emails are not in our cache
+            const uncachedEmails = [];
+            for (const email of recentEmails) {
+              const exists = await EmailCache.emailExists(email.id);
+              if (!exists) {
+                uncachedEmails.push(email);
+              }
+            }
+            
+            if (uncachedEmails.length > 0) {
+              console.log(`[Sync] Found ${uncachedEmails.length} uncached emails`);
+              newEmails = uncachedEmails;
+            }
+          } catch (fallbackError) {
+            console.error('[Sync] Fallback approach also failed:', fallbackError);
+          }
+        }
       } else {
         // Full sync: get all emails
-        newEmails = await getEmailsAction(folder, currentLimit);
+        console.log(`[Sync] Full sync for folder ${folder}`);
+        newEmails = await emailApi.getEmails(folder, currentLimit);
+        console.log(`[Sync] Retrieved ${newEmails.length} emails`);
       }
 
       if (newEmails.length > 0) {
@@ -115,14 +144,21 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
         // Update sync info with highest UID
         const highestUid = Math.max(...newEmails.map(email => email.uid));
         await EmailCache.updateSyncInfo(folder, highestUid);
+        console.log(`[Sync] Updated sync info with UID ${highestUid}`);
 
-        // Reload emails from cache to get updated list
+        // Reload emails from cache to get updated list (sorted by date)
         const updatedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
         setEmails(updatedEmails);
+        console.log(`[Sync] Updated email list with ${updatedEmails.length} total emails`);
+        
+        // Update hasMoreEmails flag based on whether we got the full limit
+        setHasMoreEmails(updatedEmails.length >= currentLimit);
+      } else {
+        console.log(`[Sync] No new emails found after all checks`);
+        // Even if no new emails, we might need to update hasMoreEmails
+        const cachedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
+        setHasMoreEmails(cachedEmails.length >= currentLimit);
       }
-
-      // Update hasMoreEmails flag
-      setHasMoreEmails(newEmails.length === currentLimit);
     } catch (err) {
       console.error('Error syncing emails:', err);
       setError(err instanceof Error ? err.message : 'Failed to sync emails');
@@ -146,7 +182,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
       // If we don't have enough cached emails, fetch from server
       if (cachedEmails.length < newLimit) {
-        const serverEmails = await getEmailsAction(folder, newLimit);
+        const serverEmails = await emailApi.getEmails(folder, newLimit);
         await EmailCache.cacheEmails(serverEmails, folder);
         
         const updatedEmails = await EmailCache.getCachedEmails(folder, newLimit);
@@ -171,7 +207,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       }
 
       // Sync with server
-      const serverFolders = await getFoldersAction();
+      const serverFolders = await emailApi.getFolders();
       await EmailCache.cacheFolders(serverFolders);
       setFolders(serverFolders);
     } catch (err) {
@@ -190,7 +226,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       }
 
       // Fetch from server and cache
-      const body = await getEmailBodyAction(folder, uid);
+      const body = await emailApi.getEmailBody(folder, uid);
       await EmailCache.cacheEmailBody(emailId, uid, body.text, body.html);
       
       return body;
@@ -204,7 +240,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
   const markAsRead = useCallback(async (emailId: string, uid: number, isRead: boolean) => {
     try {
       // Update on server
-      await markAsReadAction(folder, uid, isRead);
+      await emailApi.markAsRead(folder, uid, isRead);
       
       // Update cache
       await EmailCache.updateEmailFlags(emailId, { isRead });
@@ -223,7 +259,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
   const markAsFlagged = useCallback(async (emailId: string, uid: number, isFlagged: boolean) => {
     try {
       // Update on server
-      await markAsFlaggedAction(folder, uid, isFlagged);
+      await emailApi.markAsFlagged(folder, uid, isFlagged);
       
       // Update cache
       await EmailCache.updateEmailFlags(emailId, { isFlagged });
@@ -242,7 +278,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
   const deleteEmail = useCallback(async (emailId: string, uid: number) => {
     try {
       // Delete on server
-      await deleteEmailAction(folder, uid);
+      await emailApi.deleteEmail(folder, uid);
       
       // Delete from cache
       await EmailCache.deleteEmail(emailId);
@@ -257,9 +293,40 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
   // Refresh emails (force reload from server)
   const refreshEmails = useCallback(async () => {
-    setCurrentLimit(limit);
-    await loadEmails(false);
-  }, [loadEmails, limit]);
+    try {
+      setLoading(true);
+      setError(null);
+      setCurrentLimit(limit);
+      
+      // Force a full reload from server (no cache, no incremental)
+      const freshEmails = await emailApi.getEmails(folder, limit);
+      
+      if (freshEmails.length > 0) {
+        // Clear old emails from cache for this folder first
+        await emailDB.emails.where('folder').equals(folder).delete();
+        
+        // Cache the fresh emails
+        await EmailCache.cacheEmails(freshEmails, folder);
+        
+        // Update sync info with the highest UID from fresh emails
+        const highestUid = Math.max(...freshEmails.map(email => email.uid));
+        await EmailCache.updateSyncInfo(folder, highestUid);
+        
+        // Update state with fresh emails
+        setEmails(freshEmails);
+        setHasMoreEmails(freshEmails.length === limit);
+      } else {
+        // If no emails returned, clear the local state
+        setEmails([]);
+        setHasMoreEmails(false);
+      }
+    } catch (err) {
+      console.error('Error refreshing emails:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh emails');
+    } finally {
+      setLoading(false);
+    }
+  }, [folder, limit]);
 
   // Clear cache
   const clearCache = useCallback(async () => {
@@ -278,6 +345,60 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     return await EmailCache.getCacheStats();
   }, []);
 
+  // Smart sync: compares recent emails with cache
+  const smartSync = useCallback(async () => {
+    try {
+      setSyncing(true);
+      setError(null);
+      
+      console.log(`[SmartSync] Starting smart sync for folder ${folder}`);
+      
+      // Get the 20 most recent emails from server
+      let recentServerEmails: EmailMessage[] = [];
+      try {
+        recentServerEmails = await emailApi.getEmails(folder, 20);
+        console.log(`[SmartSync] Retrieved ${recentServerEmails.length} recent emails from server`);
+      } catch (actionError) {
+        console.error('[SmartSync] Server Action error:', actionError);
+        throw actionError;
+      }
+      
+      // Get cached emails
+      const cachedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
+      
+      // Find emails that are on server but not in cache
+      const newEmails = recentServerEmails.filter(serverEmail => 
+        !cachedEmails.some(cachedEmail => cachedEmail.id === serverEmail.id)
+      );
+      
+      console.log(`[SmartSync] Found ${newEmails.length} new emails not in cache`);
+      
+      if (newEmails.length > 0) {
+        // Cache the new emails
+        await EmailCache.cacheEmails(newEmails, folder);
+        
+        // Update sync info with the highest UID from all server emails
+        const highestUid = Math.max(...recentServerEmails.map(email => email.uid));
+        await EmailCache.updateSyncInfo(folder, highestUid);
+        
+        // Reload emails from cache
+        const updatedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
+        setEmails(updatedEmails);
+        
+        console.log(`[SmartSync] Updated cache with ${newEmails.length} new emails`);
+        console.log(`[SmartSync] Total emails now: ${updatedEmails.length}`);
+      } else {
+        console.log(`[SmartSync] No new emails found`);
+      }
+      
+    } catch (err) {
+      console.error('Error in smart sync:', err);
+      setError(err instanceof Error ? err.message : 'Failed to smart sync emails');
+    } finally {
+      setSyncing(false);
+    }
+  }, [folder, currentLimit]);
+
   // Initialize and setup auto-sync
   useEffect(() => {
     loadEmails();
@@ -286,7 +407,11 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     // Setup auto-sync interval
     let syncIntervalId: NodeJS.Timeout | null = null;
     if (autoSync && syncInterval > 0) {
-      syncIntervalId = setInterval(syncEmails, syncInterval);
+      console.log(`[AutoSync] Setting up auto-sync every ${syncInterval / 1000} seconds`);
+      syncIntervalId = setInterval(() => {
+        console.log(`[AutoSync] Running scheduled sync for folder ${folder}`);
+        syncEmails();
+      }, syncInterval);
     }
 
     return () => {
@@ -324,6 +449,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     markAsFlagged,
     deleteEmail,
     clearCache,
-    getCacheStats
+    getCacheStats,
+    smartSync
   };
 }

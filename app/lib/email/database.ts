@@ -62,7 +62,7 @@ export class EmailCache {
   static async cacheEmails(emails: EmailMessage[], folder: string): Promise<void> {
     const cachedEmails: CachedEmailMessage[] = emails.map(email => ({
       ...email,
-      date: email.date.toISOString(),
+      date: (email.date instanceof Date ? email.date : new Date(email.date)).toISOString(),
       cachedAt: new Date().toISOString(),
       folder,
       bodyLoaded: !!email.html || !!email.text
@@ -77,19 +77,15 @@ export class EmailCache {
       .where('folder')
       .equals(folder);
 
-    if (limit) {
-      const cachedEmails = await collection.reverse().sortBy('date');
-      const limitedEmails = cachedEmails.slice(0, limit);
-      
-      return limitedEmails.map(cached => ({
-        ...cached,
-        date: new Date(cached.date)
-      }));
-    }
+    // Get all emails and sort by date (newest first)
+    const cachedEmails = await collection.toArray();
+    const sortedEmails = cachedEmails.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
-    const cachedEmails = await collection.reverse().sortBy('date');
+    const finalEmails = limit ? sortedEmails.slice(0, limit) : sortedEmails;
     
-    return cachedEmails.map(cached => ({
+    return finalEmails.map(cached => ({
       ...cached,
       date: new Date(cached.date)
     }));

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
-import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield, Mail } from 'lucide-react';
+import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield, Mail, ChevronLeft } from 'lucide-react';
 
 export default function DashboardLayout({
   children
@@ -13,7 +13,15 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
+
+  // Auto-collapse sidebar when entering email page
+  useEffect(() => {
+    if (pathname === '/dashboard/emails') {
+      setIsSidebarCollapsed(true);
+    }
+  }, [pathname]);
 
   const navItems = [
     { href: '/dashboard/workspace', icon: Briefcase, label: 'Workspace' },
@@ -45,14 +53,74 @@ export default function DashboardLayout({
       </div>
 
       <div className="flex flex-1 overflow-hidden min-h-0">
-        {/* Sidebar */}
+        {/* Collapsed sidebar with icons */}
+        {isSidebarCollapsed && (
+          <aside className="hidden lg:block w-16 bg-gray-50 border-r border-gray-200">
+            <div className="flex flex-col items-center py-4 space-y-2">
+              {/* Expand button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 p-0 mb-2"
+                onClick={() => setIsSidebarCollapsed(false)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              {/* Navigation icons */}
+              {navItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={pathname === item.href ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className={`h-10 w-10 p-0 ${
+                      pathname === item.href ? 'bg-gray-200' : ''
+                    }`}
+                    title={item.label}
+                  >
+                    <item.icon className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ))}
+              
+              {/* Settings icon */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 p-0"
+                onClick={() => {
+                  setIsSidebarCollapsed(false);
+                  setIsSettingsExpanded(true);
+                }}
+                title="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
+          </aside>
+        )}
+
+        {/* Full sidebar */}
         <aside
-          className={`w-64 bg-white lg:bg-gray-50 border-r border-gray-200 lg:block ${
+          className={`${isSidebarCollapsed ? 'w-0 lg:w-0' : 'w-64'} bg-white lg:bg-gray-50 border-r border-gray-200 lg:block ${
             isSidebarOpen ? 'block' : 'hidden'
-          } lg:relative absolute inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          } lg:relative absolute inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          } ${isSidebarCollapsed ? 'lg:overflow-hidden' : ''}`}
         >
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <span className="font-medium text-gray-900">Navigation</span>
+            {!isSidebarCollapsed && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsSidebarCollapsed(true)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <nav className="h-full overflow-y-auto p-4">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} passHref>

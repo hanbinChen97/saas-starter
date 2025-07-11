@@ -11,11 +11,14 @@ interface EmailViewProps {
   onMarkAsRead?: (isRead: boolean) => Promise<void>;
   onMarkAsFlagged?: (isFlagged: boolean) => Promise<void>;
   onDelete?: () => Promise<void>;
+  onReplyToggle?: (isReplying: boolean) => void;
 }
 
-export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDelete }: EmailViewProps) {
+export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDelete, onReplyToggle }: EmailViewProps) {
   const [emailBody, setEmailBody] = useState<{ text?: string; html?: string } | null>(null);
   const [loadingBody, setLoadingBody] = useState(false);
+  const [showReply, setShowReply] = useState(false);
+  const [replyText, setReplyText] = useState('');
   const { getEmailBody } = useMailCache();
 
   // Load email body when email changes
@@ -109,23 +112,13 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden">
-      {/* Email Header */}
-      <div className="border-b border-gray-200 p-6 flex-shrink-0">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              {email.subject}
-            </h1>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <div>
-                <span className="font-medium">From:</span> {email.from.name || email.from.address}
-              </div>
-              <div>
-                <span className="font-medium">Date:</span> {formattedDate}
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col bg-white min-h-full">
+      {/* Title */}
+      <div className="border-b border-gray-200 p-4 flex-shrink-0">
+        <div className="flex items-start justify-between">
+          <h1 className="text-xl font-semibold text-gray-900 flex-1">
+            {email.subject}
+          </h1>
           <div className="flex items-center gap-2 ml-4">
             {!email.isRead && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -139,50 +132,140 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
             )}
           </div>
         </div>
-
-        {/* Email Actions */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={email.isRead ? handleMarkAsUnread : handleMarkAsRead}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            {email.isRead ? 'Mark as unread' : 'Mark as read'}
-          </button>
-          <button
-            onClick={handleMarkAsFlagged}
-            className="text-sm text-yellow-600 hover:text-yellow-800 font-medium"
-          >
-            {email.isFlagged ? 'Unflag' : 'Flag'}
-          </button>
-          <button
-            onClick={handleDelete}
-            className="text-sm text-red-600 hover:text-red-800 font-medium"
-          >
-            Delete
-          </button>
-        </div>
-
-        {/* Email Details */}
-        <div className="mt-4 space-y-2 text-sm">
-          <div>
-            <span className="font-medium text-gray-700">To:</span>
-            <span className="ml-2 text-gray-900">
-              {email.to.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
-            </span>
-          </div>
-          {email.cc && email.cc.length > 0 && (
-            <div>
-              <span className="font-medium text-gray-700">CC:</span>
-              <span className="ml-2 text-gray-900">
-                {email.cc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
-              </span>
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* Email Content */}
-      <div className="flex-1 overflow-auto p-6 email-list-scrollbar smooth-scroll scroll-performance">
+      {/* Reply Box */}
+      <div className="border-b border-gray-200 p-4 flex-shrink-0">
+        <button
+          onClick={() => {
+            const newShowReply = !showReply;
+            setShowReply(newShowReply);
+            onReplyToggle?.(newShowReply);
+          }}
+          className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded font-medium transition-colors"
+        >
+          {showReply ? 'Hide Reply' : 'Reply'}
+        </button>
+      </div>
+
+      {/* Reply Interface */}
+      {showReply && (
+        <div className="border-b border-gray-200 p-6 flex-shrink-0">
+          <div className="flex gap-6 h-96">
+            {/* Reply Box - Left Half */}
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Reply</h3>
+              <div className="border border-gray-300 rounded-lg h-full flex flex-col">
+                {/* Reply Header */}
+                <div className="border-b border-gray-200 p-3 bg-gray-50">
+                  <div className="text-sm text-gray-700">
+                    <div className="mb-1">
+                      <span className="font-medium">To:</span> {email.from.name || email.from.address}
+                    </div>
+                    <div>
+                      <span className="font-medium">Subject:</span> Re: {email.subject}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Reply Content */}
+                <div className="flex-1 p-3">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Type your reply here..."
+                    className="w-full h-full resize-none border-none outline-none text-sm"
+                  />
+                </div>
+                
+                {/* Reply Actions */}
+                <div className="border-t border-gray-200 p-3 flex justify-between items-center">
+                  <div className="flex gap-2">
+                    <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
+                      Send
+                    </button>
+                    <button 
+                      onClick={() => setShowReply(false)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Press Ctrl+Enter to send
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Placeholder - Right Half */}
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Chat</h3>
+              <div className="border border-gray-300 rounded-lg h-full flex items-center justify-center bg-gray-50">
+                <div className="text-center text-gray-500">
+                  <div className="text-4xl mb-2">💬</div>
+                  <p className="text-sm">Chat functionality coming soon</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mail View */}
+      <div className="flex-1">
+        {/* Email Header Information */}
+        <div className="border-b border-gray-200 p-6 bg-gray-50">
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center text-sm">
+              <span className="font-medium text-gray-700 w-16">From:</span>
+              <span className="text-gray-900">{email.from.name || email.from.address}</span>
+            </div>
+            <div className="flex items-center text-sm">
+              <span className="font-medium text-gray-700 w-16">Date:</span>
+              <span className="text-gray-900">{formattedDate}</span>
+            </div>
+            <div className="flex items-start text-sm">
+              <span className="font-medium text-gray-700 w-16 flex-shrink-0">To:</span>
+              <span className="text-gray-900">
+                {email.to.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
+              </span>
+            </div>
+            {email.cc && email.cc.length > 0 && (
+              <div className="flex items-start text-sm">
+                <span className="font-medium text-gray-700 w-16 flex-shrink-0">CC:</span>
+                <span className="text-gray-900">
+                  {email.cc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Email Actions */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={email.isRead ? handleMarkAsUnread : handleMarkAsRead}
+              className="px-3 py-1 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded font-medium transition-colors"
+            >
+              {email.isRead ? 'Mark as unread' : 'Mark as read'}
+            </button>
+            <button
+              onClick={handleMarkAsFlagged}
+              className="px-3 py-1 text-sm bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded font-medium transition-colors"
+            >
+              {email.isFlagged ? 'Unflag' : 'Flag'}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded font-medium transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        {/* Email Content */}
+        <div className="p-6">
         {loadingBody ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-gray-500">Loading email content...</div>
@@ -240,6 +323,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

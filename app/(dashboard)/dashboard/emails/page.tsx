@@ -5,11 +5,13 @@ import { useMailCache } from '@/app/hooks/useMailCache';
 import { EmailList } from '@/app/components/email/EmailList';
 import { EmailView } from '@/app/components/email/EmailView';
 import { EmailMessage } from '@/app/lib/email/types';
+import { EmailCache } from '@/app/lib/email/database';
 
 export default function EmailsPage() {
   const [currentFolder, setCurrentFolder] = useState('INBOX');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
+  const [isEmailListCollapsed, setIsEmailListCollapsed] = useState(false);
 
   const { 
     emails, 
@@ -24,20 +26,18 @@ export default function EmailsPage() {
     markAsRead,
     markAsFlagged,
     deleteEmail,
-    getCacheStats
+    getCacheStats,
+    smartSync
   } = useMailCache({ 
     folder: currentFolder, 
     limit: 50,
     autoSync: true,
-    syncInterval: 5 * 60 * 1000 // 5 minutes
+    syncInterval: 2 * 60 * 1000 // 2 minutes
   });
 
   // Filter emails based on unread only setting
   const filteredEmails = showUnreadOnly ? emails.filter(email => !email.isRead) : emails;
 
-  const handleRefresh = () => {
-    refreshEmails();
-  };
 
   const handleUnreadOnlyToggle = () => {
     setShowUnreadOnly(!showUnreadOnly);
@@ -66,6 +66,13 @@ export default function EmailsPage() {
     }
   };
 
+  const handleReplyToggle = (isReplying: boolean) => {
+    // Auto-collapse email list when replying
+    if (isReplying) {
+      setIsEmailListCollapsed(true);
+    }
+  };
+
   const handleFolderChange = (folder: string) => {
     setCurrentFolder(folder);
     setSelectedEmail(null); // Clear selection when changing folders
@@ -74,39 +81,21 @@ export default function EmailsPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-200 p-6 bg-white flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Email Center</h1>
-            <p className="text-gray-600 mt-1">View and manage all emails with caching</p>
-          </div>
-          
-          {/* Sync Status */}
-          <div className="flex items-center gap-3">
-            {syncing && (
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                Syncing...
-              </div>
-            )}
-            <div className="text-sm text-gray-500">
-              {emails.length} emails loaded
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
+      <div className="border-b border-gray-200 p-4 bg-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Email Center</h1>
+            </div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <span className="text-sm font-medium text-gray-700">
                 {currentFolder} ({filteredEmails.length})
-              </h2>
+              </span>
               {folders.length > 0 && (
                 <select
                   value={currentFolder}
                   onChange={(e) => handleFolderChange(e.target.value)}
-                  className="ml-2 px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   {folders.map((folder) => (
                     <option key={folder.path} value={folder.path}>
@@ -126,21 +115,74 @@ export default function EmailsPage() {
               <span className="text-sm text-gray-600">Show unread only</span>
             </label>
           </div>
-          <button 
-            onClick={handleRefresh}
-            disabled={loading || syncing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading || syncing ? 'Syncing...' : 'Refresh'}
-          </button>
+          
+          {/* Sync Status */}
+          <div className="flex items-center gap-3">
+            {syncing && (
+              <div className="flex items-center gap-2 px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                Syncing...
+              </div>
+            )}
+            <div className="text-sm text-gray-500">
+              {emails.length} emails
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <div className="mt-2">
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="text-sm bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded border border-red-300"
+                >
+                  Reload Page
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content - Split View */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Email List Sidebar */}
-        <div className="w-1/3 border-r border-gray-200 bg-white flex flex-col min-h-0">
-          <div className="flex-1 overflow-hidden">
+        <div className={`${isEmailListCollapsed ? 'w-12' : 'w-1/3'} border-r border-gray-200 bg-white flex flex-col min-h-0 transition-all duration-300`}>
+          {/* Collapse Toggle Button */}
+          <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+            {!isEmailListCollapsed && (
+              <span className="text-sm font-medium text-gray-700">Email List</span>
+            )}
+            <button
+              onClick={() => setIsEmailListCollapsed(!isEmailListCollapsed)}
+              className="p-1 rounded hover:bg-gray-200 transition-colors"
+              title={isEmailListCollapsed ? "Expand email list" : "Collapse email list"}
+            >
+              <svg 
+                className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${isEmailListCollapsed ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Email List Content */}
+          <div className={`flex-1 overflow-hidden ${isEmailListCollapsed ? 'hidden' : ''}`}>
             <EmailList
               emails={filteredEmails}
               loading={loading}
@@ -155,7 +197,7 @@ export default function EmailsPage() {
         </div>
 
         {/* Email View Panel */}
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 overflow-auto email-list-scrollbar smooth-scroll scroll-performance">
           <EmailView
             email={selectedEmail}
             onUpdate={handleEmailUpdate}
@@ -175,6 +217,7 @@ export default function EmailsPage() {
                 setSelectedEmail(null);
               }
             }}
+            onReplyToggle={handleReplyToggle}
           />
         </div>
       </div>

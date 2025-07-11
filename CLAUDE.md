@@ -131,3 +131,4 @@ This is a Next.js SaaS starter with two main applications:
 - Subscription status tracking with Stripe webhooks
 - Real email integration using IMAP with RWTH Aachen University mail server
 - Email operations are performed server-side for security and performance
+

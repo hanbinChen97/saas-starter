@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useMailCache } from '@/app/hooks/useMailCache';
 import { EmailList } from '@/app/components/email/EmailList';
 import { EmailView } from '@/app/components/email/EmailView';
-import { EmailMessage } from '@/app/lib/email/types';
-import { EmailCache } from '@/app/lib/email/database';
+import { EmailMessage } from '@/app/lib/email-imap/types';
+import { EmailCache } from '@/app/lib/email-imap/database';
 
 export default function EmailsPage() {
   const [currentFolder, setCurrentFolder] = useState('INBOX');
@@ -81,21 +81,21 @@ export default function EmailsPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-200 p-4 bg-white flex-shrink-0">
+      <div className="border-b border-gray-200 p-2 bg-white flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Email Center</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Email Center</h1>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-xs text-gray-700">
                 {currentFolder} ({filteredEmails.length})
               </span>
               {folders.length > 0 && (
                 <select
                   value={currentFolder}
                   onChange={(e) => handleFolderChange(e.target.value)}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="px-2 py-0.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   {folders.map((folder) => (
                     <option key={folder.path} value={folder.path}>
@@ -105,26 +105,26 @@ export default function EmailsPage() {
                 </select>
               )}
             </div>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showUnreadOnly}
                 onChange={handleUnreadOnlyToggle}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-600">Show unread only</span>
+              <span className="text-xs text-gray-600">Unread only</span>
             </label>
           </div>
           
           {/* Sync Status */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {syncing && (
-              <div className="flex items-center gap-2 px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                Syncing...
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                Syncing
               </div>
             )}
-            <div className="text-sm text-gray-500">
+            <div className="text-xs text-gray-500">
               {emails.length} emails
             </div>
           </div>
@@ -159,11 +159,11 @@ export default function EmailsPage() {
       {/* Main Content - Split View */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Email List Sidebar */}
-        <div className={`${isEmailListCollapsed ? 'w-12' : 'w-1/3'} border-r border-gray-200 bg-white flex flex-col min-h-0 transition-all duration-300`}>
+        <div className={`${isEmailListCollapsed ? 'w-10' : 'w-full md:w-1/3'} border-r border-gray-200 bg-white flex flex-col min-h-0 transition-all duration-300 ${isEmailListCollapsed ? '' : 'md:block'}`}>
           {/* Collapse Toggle Button */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50">
             {!isEmailListCollapsed && (
-              <span className="text-sm font-medium text-gray-700">Email List</span>
+              <span className="text-xs font-medium text-gray-700">Email List</span>
             )}
             <button
               onClick={() => setIsEmailListCollapsed(!isEmailListCollapsed)}
@@ -171,7 +171,7 @@ export default function EmailsPage() {
               title={isEmailListCollapsed ? "Expand email list" : "Collapse email list"}
             >
               <svg 
-                className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${isEmailListCollapsed ? 'rotate-180' : ''}`} 
+                className={`w-3 h-3 text-gray-600 transition-transform duration-200 ${isEmailListCollapsed ? 'rotate-180' : ''}`} 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -197,7 +197,7 @@ export default function EmailsPage() {
         </div>
 
         {/* Email View Panel */}
-        <div className="flex-1 overflow-auto email-list-scrollbar smooth-scroll scroll-performance">
+        <div className={`flex-1 overflow-auto email-list-scrollbar smooth-scroll scroll-performance ${selectedEmail ? 'block' : 'hidden md:block'}`}>
           <EmailView
             email={selectedEmail}
             onUpdate={handleEmailUpdate}
@@ -218,6 +218,7 @@ export default function EmailsPage() {
               }
             }}
             onReplyToggle={handleReplyToggle}
+            onBack={() => setSelectedEmail(null)}
           />
         </div>
       </div>

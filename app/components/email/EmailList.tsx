@@ -1,7 +1,7 @@
 'use client';
 
 import { EmailListItem } from './EmailListItem';
-import { EmailMessage } from '@/app/lib/email/types';
+import { EmailMessage } from '@/app/lib/email-imap/types';
 import { useEffect, useRef, useCallback } from 'react';
 
 interface EmailListProps {
@@ -54,7 +54,7 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
     return (
       <div className="divide-y divide-gray-200">
         {[...Array(8)].map((_, index) => (
-          <div key={index} className="p-4 animate-pulse">
+          <div key={index} className="p-2 animate-pulse">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="h-4 bg-gray-200 rounded mb-2 w-1/2"></div>
@@ -73,7 +73,7 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
 
   if (error) {
     return (
-      <div className="p-6 text-center">
+      <div className="p-3 text-center">
         <div className="text-red-600 font-medium mb-2">Error loading emails</div>
         <div className="text-red-500 text-sm mb-4">{error}</div>
         <button
@@ -88,10 +88,10 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
 
   if (emails.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <div className="text-4xl mb-4">📧</div>
-        <div className="text-gray-600 font-medium mb-1">No emails</div>
-        <div className="text-gray-500 text-sm">No emails found in this folder</div>
+      <div className="p-4 text-center">
+        <div className="text-2xl mb-2">📧</div>
+        <div className="text-gray-600 text-sm font-medium mb-1">No emails</div>
+        <div className="text-gray-500 text-xs">No emails found in this folder</div>
       </div>
     );
   }
@@ -113,17 +113,17 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
         
         {/* Loading indicator for infinite scroll */}
         {hasMore && onLoadMore && (
-          <div ref={loadingRef} className="p-4">
+          <div ref={loadingRef} className="p-2">
             {loading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-sm text-gray-500">Loading more emails...</span>
+                <span className="ml-2 text-xs text-gray-500">Loading more emails...</span>
               </div>
             ) : (
               <div className="text-center">
                 <button 
                   onClick={onLoadMore}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                 >
                   Load more emails
                 </button>
@@ -134,7 +134,7 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
         
         {/* End of list indicator */}
         {!hasMore && emails.length > 0 && (
-          <div className="p-4 text-center text-sm text-gray-500">
+          <div className="p-2 text-center text-xs text-gray-500">
             No more emails to load
           </div>
         )}

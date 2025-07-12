@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createEmailService, ImapEmailService } from '@/app/lib/email/email-service';
+import { createEmailService, ImapEmailService } from '@/app/lib/email-imap/email-service';
 
 let emailService: ImapEmailService | null = null;
 let connectionPromise: Promise<ImapEmailService> | null = null;
@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
         if (!uid) {
           return NextResponse.json({ success: false, error: 'UID required' }, { status: 400 });
         }
-        const body = await service.fetchEmailBody(folder, uid);
-        return NextResponse.json({ success: true, data: body });
+        const emailBody = await service.fetchEmailBody(folder, uid);
+        return NextResponse.json({ success: true, data: emailBody });
 
       case 'markAsRead':
         if (!uid || typeof body.isRead !== 'boolean') {

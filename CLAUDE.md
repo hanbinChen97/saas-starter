@@ -84,9 +84,10 @@ This is a Next.js SaaS starter with two main applications:
   - `EmailListItem.tsx` - Individual email item in the sidebar
   - `EmailView.tsx` - Right panel for viewing selected email content
   - `EmailCard.tsx` - Legacy full-width email card (kept for compatibility)
+- **Email Service**: `app/lib/email/email-service.ts` - IMAP email service implementation using **node-imap**
+  
 - **Email Types**: `app/lib/email/types.ts` - Type definitions for email messages, folders, and configuration
 - **Email Parser**: `app/lib/email/email-parser.ts` - Utility for parsing and processing IMAP email data
-- **Email Service**: `app/lib/email/email-service.ts` - IMAP email service implementation using node-imap
 - **Email Actions**: `app/lib/email/actions.ts` - Server actions for email operations (fetch, mark as read/unread, delete)
 - **Email Hook**: `app/hooks/useEmails.ts` - React hook for managing email state with real IMAP integration
 - **Email Page**: `/dashboard/emails` - Outlook-style split view interface
@@ -131,4 +132,18 @@ This is a Next.js SaaS starter with two main applications:
 - Subscription status tracking with Stripe webhooks
 - Real email integration using IMAP with RWTH Aachen University mail server
 - Email operations are performed server-side for security and performance
+
+
+使用 react 的 server action 来实现 api 的调用。
+
+
+llm 使用 azure openai 的 gpt-4.1 模型，argument 在 .env 中配置，参考 .env.example 文件。
+
+
+
+
+
+
+
+
 

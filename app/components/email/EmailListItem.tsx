@@ -1,7 +1,7 @@
 'use client';
 
-import { EmailMessage } from '@/app/lib/email/types';
-import { EmailParser } from '@/app/lib/email/email-parser';
+import { EmailMessage } from '@/app/lib/email-imap/types';
+import { EmailParser } from '@/app/lib/email-imap/email-parser';
 
 interface EmailListItemProps {
   email: EmailMessage;
@@ -31,7 +31,7 @@ export function EmailListItem({ email, isSelected, onClick }: EmailListItemProps
   return (
     <div
       onClick={onClick}
-      className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors will-change-transform ${
+      className={`p-2 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors will-change-transform ${
         isSelected ? 'bg-blue-50 border-r-2 border-r-blue-500' : ''
       } ${
         !email.isRead ? 'bg-blue-25 border-l-2 border-l-blue-500' : ''
@@ -40,13 +40,13 @@ export function EmailListItem({ email, isSelected, onClick }: EmailListItemProps
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <p className={`text-sm truncate ${
+            <p className={`text-xs truncate ${
               !email.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'
             }`}>
               {email.from.name || email.from.address}
             </p>
             {!email.isRead && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></div>
             )}
             {email.isFlagged && (
               <div className="text-yellow-500 text-xs">⭐</div>
@@ -56,7 +56,7 @@ export function EmailListItem({ email, isSelected, onClick }: EmailListItemProps
             )}
           </div>
           
-          <h3 className={`text-sm mb-1 truncate ${
+          <h3 className={`text-xs mb-1 truncate ${
             !email.isRead ? 'font-semibold text-gray-900' : 'font-normal text-gray-800'
           }`}>
             {email.subject}

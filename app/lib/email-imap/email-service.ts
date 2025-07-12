@@ -3,8 +3,6 @@ import { simpleParser, ParsedMail } from 'mailparser';
 import { EmailMessage, EmailFolder, EmailFetchOptions, EmailConnectionConfig, EmailService } from './types';
 import { EmailParser } from './email-parser';
 
-export { ImapEmailService };
-
 export class ImapEmailService implements EmailService {
   private imap: Imap;
   private config: EmailConnectionConfig;
@@ -524,7 +522,7 @@ export class ImapEmailService implements EmailService {
 export function createEmailService(): ImapEmailService {
   const config: EmailConnectionConfig = {
     host: process.env.RWTH_MAIL_SERVER!,
-    port: parseInt(process.env.RWTH_MAIL_SERVER_PORT!),
+    port: parseInt(process.env.RWTH_MAIL_SERVER_IMAP_PORT!),
     username: process.env.EXCHANGE_USERNAME!,
     password: process.env.EXCHANGE_PASSWORD!,
     tls: process.env.RWTH_MAIL_SERVER_ENCRYPTION === 'SSL',

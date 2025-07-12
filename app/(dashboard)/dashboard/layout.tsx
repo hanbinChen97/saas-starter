@@ -61,10 +61,10 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-10 w-10 p-0 mb-2"
+                className="h-8 w-8 p-0 mb-2"
                 onClick={() => setIsSidebarCollapsed(false)}
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3" />
               </Button>
               
               {/* Navigation icons */}
@@ -73,12 +73,12 @@ export default function DashboardLayout({
                   <Button
                     variant={pathname === item.href ? 'secondary' : 'ghost'}
                     size="sm"
-                    className={`h-10 w-10 p-0 ${
+                    className={`h-8 w-8 p-0 ${
                       pathname === item.href ? 'bg-gray-200' : ''
                     }`}
                     title={item.label}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="h-3 w-3" />
                   </Button>
                 </Link>
               ))}
@@ -87,14 +87,14 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-10 w-10 p-0"
+                className="h-8 w-8 p-0"
                 onClick={() => {
                   setIsSidebarCollapsed(false);
                   setIsSettingsExpanded(true);
                 }}
                 title="Settings"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-3 w-3" />
               </Button>
             </div>
           </aside>
@@ -126,12 +126,12 @@ export default function DashboardLayout({
               <Link key={item.href} href={item.href} passHref>
                 <Button
                   variant={pathname === item.href ? 'secondary' : 'ghost'}
-                  className={`shadow-none my-1 w-full justify-start ${
+                  className={`shadow-none my-0.5 w-full justify-start text-sm ${
                     pathname === item.href ? 'bg-gray-100' : ''
                   }`}
                   onClick={() => setIsSidebarOpen(false)}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-3 w-3" />
                   {item.label}
                 </Button>
               </Link>
@@ -144,15 +144,15 @@ export default function DashboardLayout({
             <div>
               <Button
                 variant="ghost"
-                className="shadow-none my-1 w-full justify-start"
+                className="shadow-none my-0.5 w-full justify-start text-sm"
                 onClick={() => setIsSettingsExpanded(!isSettingsExpanded)}
               >
                 {isSettingsExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3 w-3" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3" />
                 )}
-                <Settings className="h-4 w-4" />
+                <Settings className="h-3 w-3" />
                 Settings
               </Button>
               
@@ -163,7 +163,7 @@ export default function DashboardLayout({
                     <Link key={item.href} href={item.href} passHref>
                       <Button
                         variant={pathname === item.href ? 'secondary' : 'ghost'}
-                        className={`shadow-none my-1 w-full justify-start text-sm ${
+                        className={`shadow-none my-0.5 w-full justify-start text-xs ${
                           pathname === item.href ? 'bg-gray-100' : ''
                         }`}
                         onClick={() => setIsSidebarOpen(false)}

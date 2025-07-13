@@ -1,94 +1,190 @@
-import { checkoutAction } from '@/app/lib/payments/actions';
-import { Check } from 'lucide-react';
-import { getStripePrices, getStripeProducts } from '@/app/lib/payments/stripe';
-import { SubmitButton } from './submit-button';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Check, Mail, MessageSquare, BarChart3, Crown } from 'lucide-react';
+import Link from 'next/link';
 
-// Prices are fresh for one hour max
-export const revalidate = 3600;
-
-export default async function PricingPage() {
-  const [prices, products] = await Promise.all([
-    getStripePrices(),
-    getStripeProducts(),
-  ]);
-
-  const basePlan = products.find((product) => product.name === 'Base');
-  const plusPlan = products.find((product) => product.name === 'Plus');
-
-  const basePrice = prices.find((price) => price.productId === basePlan?.id);
-  const plusPrice = prices.find((price) => price.productId === plusPlan?.id);
-
+export default function PricingPage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid md:grid-cols-2 gap-8 max-w-xl mx-auto">
-        <PricingCard
-          name={basePlan?.name || 'Base'}
-          price={basePrice?.unitAmount || 800}
-          interval={basePrice?.interval || 'month'}
-          trialDays={basePrice?.trialPeriodDays || 7}
-          features={[
-            'Unlimited Usage',
-            'Unlimited Workspace Members',
-            'Email Support',
-          ]}
-          priceId={basePrice?.id}
-        />
-        <PricingCard
-          name={plusPlan?.name || 'Plus'}
-          price={plusPrice?.unitAmount || 1200}
-          interval={plusPrice?.interval || 'month'}
-          trialDays={plusPrice?.trialPeriodDays || 7}
-          features={[
-            'Everything in Base, and:',
-            'Early Access to New Features',
-            '24/7 Support + Slack Access',
-          ]}
-          priceId={plusPrice?.id}
-        />
+    <section className="flex-1 p-4 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Choose Your EmAilX Plan
+          </h1>
+          <p className="text-lg text-gray-600">
+            Start free and upgrade as your email management needs grow
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Free Plan */}
+          <Card className="relative">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Mail className="h-5 w-5 mr-2 text-blue-500" />
+                Starter
+              </CardTitle>
+              <div className="mt-4">
+                <span className="text-3xl font-bold">Free</span>
+                <span className="text-gray-500 ml-2">forever</span>
+              </div>
+              <p className="text-sm text-gray-600">Perfect for personal use</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">1 Email Account</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Basic Email Management</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Email Sync</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Mobile App Access</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full mt-6" variant="outline">
+                <Link href="/dashboard/emails">
+                  Get Started Free
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pro Plan */}
+          <Card className="relative border-blue-500 border-2">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                Most Popular
+              </span>
+            </div>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MessageSquare className="h-5 w-5 mr-2 text-blue-500" />
+                Professional
+              </CardTitle>
+              <div className="mt-4">
+                <span className="text-3xl font-bold">$9</span>
+                <span className="text-gray-500 ml-2">per month</span>
+              </div>
+              <p className="text-sm text-gray-600">For power users and professionals</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">5 Email Accounts</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">AI-Powered Replies</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Email Templates</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Priority Support</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Advanced Analytics</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
+                <Link href="/dashboard">
+                  Start Free Trial
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Enterprise Plan */}
+          <Card className="relative">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Crown className="h-5 w-5 mr-2 text-purple-500" />
+                Enterprise
+              </CardTitle>
+              <div className="mt-4">
+                <span className="text-3xl font-bold">$29</span>
+                <span className="text-gray-500 ml-2">per month</span>
+              </div>
+              <p className="text-sm text-gray-600">For teams and organizations</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Unlimited Email Accounts</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Team Collaboration</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Custom AI Training</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">Admin Dashboard</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-sm">24/7 Premium Support</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full mt-6" variant="outline">
+                <Link href="/dashboard">
+                  Contact Sales
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Features Comparison */}
+        <div className="mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Why Choose EmAilX?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                  <BarChart3 className="h-8 w-8 text-blue-500 mx-auto mb-3" />
+                  <h3 className="font-medium mb-2">Intelligent Analytics</h3>
+                  <p className="text-sm text-gray-600">
+                    Track email performance and optimize your communication strategy
+                  </p>
+                </div>
+                <div>
+                  <MessageSquare className="h-8 w-8 text-green-500 mx-auto mb-3" />
+                  <h3 className="font-medium mb-2">AI-Powered Assistance</h3>
+                  <p className="text-sm text-gray-600">
+                    Generate smart replies and compose emails with artificial intelligence
+                  </p>
+                </div>
+                <div>
+                  <Mail className="h-8 w-8 text-purple-500 mx-auto mb-3" />
+                  <h3 className="font-medium mb-2">Universal Compatibility</h3>
+                  <p className="text-sm text-gray-600">
+                    Works with Gmail, Outlook, Yahoo, and any IMAP email provider
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </main>
-  );
-}
-
-function PricingCard({
-  name,
-  price,
-  interval,
-  trialDays,
-  features,
-  priceId,
-}: {
-  name: string;
-  price: number;
-  interval: string;
-  trialDays: number;
-  features: string[];
-  priceId?: string;
-}) {
-  return (
-    <div className="pt-6">
-      <h2 className="text-2xl font-medium text-gray-900 mb-2">{name}</h2>
-      <p className="text-sm text-gray-600 mb-4">
-        with {trialDays} day free trial
-      </p>
-      <p className="text-4xl font-medium text-gray-900 mb-6">
-        ${price / 100}{' '}
-        <span className="text-xl font-normal text-gray-600">
-          per user / {interval}
-        </span>
-      </p>
-      <ul className="space-y-4 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start">
-            <Check className="h-5 w-5 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <form action={checkoutAction}>
-        <input type="hidden" name="priceId" value={priceId} />
-        <SubmitButton />
-      </form>
-    </div>
+    </section>
   );
 }

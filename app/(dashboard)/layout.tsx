@@ -60,9 +60,9 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col gap-1">
         <DropdownMenuItem className="cursor-pointer">
-          <Link href="/dashboard" className="flex w-full items-center">
+          <Link href="/dashboard/emails" className="flex w-full items-center">
             <Home className="mr-2 h-3 w-3" />
-            <span>Dashboard</span>
+            <span>Emails</span>
           </Link>
         </DropdownMenuItem>
         <form action={handleSignOut} className="w-full">
@@ -82,9 +82,9 @@ function Header() {
   return (
     <header className="border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center">
+        <Link href="/dashboard/emails" className="flex items-center">
           <CircleIcon className="h-5 w-5 text-orange-500" />
-          <span className="ml-2 text-lg font-semibold text-gray-900">ACME</span>
+          <span className="ml-2 text-lg font-semibold text-gray-900">EmAilX</span>
         </Link>
         <div className="flex items-center space-x-4">
           <Suspense fallback={<div className="h-9" />}>

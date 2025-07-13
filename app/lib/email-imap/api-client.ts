@@ -20,8 +20,11 @@ class EmailApiClient {
   private sessionId: string | null = null;
 
   constructor() {
-    // Try to restore session from localStorage on initialization
-    if (typeof window !== 'undefined') {
+    // Session will be initialized on client side
+  }
+
+  private initializeSession(): void {
+    if (typeof window !== 'undefined' && this.sessionId === null) {
       const storedSessionId = localStorage.getItem('email_session_id');
       if (storedSessionId) {
         this.sessionId = storedSessionId;
@@ -30,6 +33,8 @@ class EmailApiClient {
   }
 
   private async makeRequest(action: string, params: any = {}) {
+    this.initializeSession();
+    
     const requestBody: any = { action, ...params };
     
     // Include sessionId if available
@@ -77,6 +82,7 @@ class EmailApiClient {
   }
 
   isAuthenticated(): boolean {
+    this.initializeSession();
     return this.sessionId !== null;
   }
 

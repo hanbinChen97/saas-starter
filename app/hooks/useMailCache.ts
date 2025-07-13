@@ -10,6 +10,7 @@ interface UseMailCacheOptions {
   limit?: number;
   autoSync?: boolean;
   syncInterval?: number; // in milliseconds
+  isAuthenticated?: boolean;
 }
 
 interface UseMailCacheReturn {
@@ -46,7 +47,8 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     folder = 'INBOX',
     limit = 50,
     autoSync = true,
-    syncInterval = 2 * 60 * 1000 // 2 minutes
+    syncInterval = 2 * 60 * 1000, // 2 minutes
+    isAuthenticated = false
   } = options;
 
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -401,12 +403,20 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
   // Initialize and setup auto-sync
   useEffect(() => {
-    loadEmails();
-    loadFolders();
+    // Only load emails and folders if authenticated
+    if (isAuthenticated) {
+      loadEmails();
+      loadFolders();
+    } else {
+      // Clear state when not authenticated
+      setEmails([]);
+      setFolders([]);
+      setLoading(false);
+    }
 
     // Setup auto-sync interval
     let syncIntervalId: NodeJS.Timeout | null = null;
-    if (autoSync && syncInterval > 0) {
+    if (autoSync && syncInterval > 0 && isAuthenticated) {
       console.log(`[AutoSync] Setting up auto-sync every ${syncInterval / 1000} seconds`);
       syncIntervalId = setInterval(() => {
         console.log(`[AutoSync] Running scheduled sync for folder ${folder}`);
@@ -419,7 +429,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
         clearInterval(syncIntervalId);
       }
     };
-  }, [folder]); // Re-run when folder changes
+  }, [folder, isAuthenticated]); // Re-run when folder or authentication changes
 
   // Cleanup old cache periodically
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
-import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield, Mail, ChevronLeft } from 'lucide-react';
+import { Menu, Briefcase, Settings, ChevronDown, ChevronRight, Users, CreditCard, UserPlus, Shield, Mail, ChevronLeft, Home } from 'lucide-react';
 
 export default function DashboardLayout({
   children
@@ -24,15 +24,16 @@ export default function DashboardLayout({
   }, [pathname]);
 
   const navItems = [
+    { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/workspace', icon: Briefcase, label: 'Workspace' },
     { href: '/dashboard/emails', icon: Mail, label: 'Emails' }
   ];
 
   const settingsSubItems = [
-    { href: '/dashboard/settings/team', icon: Users, label: 'Team' },
-    { href: '/dashboard/settings/subscription', icon: CreditCard, label: 'Subscription' },
-    { href: '/dashboard/settings/members', icon: UserPlus, label: 'Members' },
-    { href: '/dashboard/settings/security', icon: Shield, label: 'Security' }
+    // { href: '/dashboard/settings/team', icon: Users, label: 'Team' },
+    // { href: '/dashboard/settings/subscription', icon: CreditCard, label: 'Subscription' },
+    // { href: '/dashboard/settings/members', icon: UserPlus, label: 'Members' },
+    // { href: '/dashboard/settings/security', icon: Shield, label: 'Security' }
   ];
 
   return (
@@ -40,7 +41,7 @@ export default function DashboardLayout({
       {/* Mobile header */}
       <div className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 p-4 flex-shrink-0">
         <div className="flex items-center">
-          <span className="font-medium">Workspace</span>
+          <span className="font-medium">EmAilX</span>
         </div>
         <Button
           className="-mr-3"
@@ -84,6 +85,7 @@ export default function DashboardLayout({
               ))}
               
               {/* Settings icon */}
+              {/* 
               <Button
                 variant="ghost"
                 size="sm"
@@ -96,6 +98,7 @@ export default function DashboardLayout({
               >
                 <Settings className="h-3 w-3" />
               </Button>
+              */}
             </div>
           </aside>
         )}
@@ -138,9 +141,10 @@ export default function DashboardLayout({
             ))}
             
             {/* Divider */}
-            <div className="border-t border-gray-200 my-4"></div>
+            {/* <div className="border-t border-gray-200 my-4"></div> */}
             
             {/* Settings Folder */}
+            {/* 
             <div>
               <Button
                 variant="ghost"
@@ -157,7 +161,7 @@ export default function DashboardLayout({
               </Button>
               
               {/* Settings Sub-items */}
-              {isSettingsExpanded && (
+              {/* {isSettingsExpanded && (
                 <div className="ml-4 border-l border-gray-200 pl-2">
                   {settingsSubItems.map((item) => (
                     <Link key={item.href} href={item.href} passHref>
@@ -175,7 +179,7 @@ export default function DashboardLayout({
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
           </nav>
         </aside>
 

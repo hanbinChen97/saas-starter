@@ -25,6 +25,13 @@ export default function EmailsPage() {
     logout 
   } = useEmailAuth();
 
+  // Hydration fix: wait for client-side initialization
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const { 
     emails, 
     folders, 
@@ -44,7 +51,8 @@ export default function EmailsPage() {
     folder: currentFolder, 
     limit: 50,
     autoSync: isAuthenticated, // Only auto-sync when authenticated
-    syncInterval: 2 * 60 * 1000 // 2 minutes
+    syncInterval: 2 * 60 * 1000, // 2 minutes
+    isAuthenticated: isAuthenticated && isClient // Pass authentication state
   });
 
   // Handle login
@@ -99,6 +107,15 @@ export default function EmailsPage() {
     setSelectedEmail(null); // Clear selection when changing folders
   };
 
+  // Show loading during hydration
+  if (!isClient) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   // If not authenticated, show login form
   if (!isAuthenticated) {
     return (
@@ -119,7 +136,7 @@ export default function EmailsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Email Center</h1>
+              <h1 className="text-lg font-semibold text-gray-900">EmAilX Center</h1>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-700">

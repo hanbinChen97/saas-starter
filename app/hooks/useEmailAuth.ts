@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { emailApi, EmailCredentials, AuthResult } from '@/app/lib/email-imap/api-client';
 
 interface UseEmailAuthReturn {
@@ -12,9 +12,10 @@ interface UseEmailAuthReturn {
 }
 
 export function useEmailAuth(): UseEmailAuthReturn {
-  const [isAuthenticated, setIsAuthenticated] = useState(emailApi.isAuthenticated());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const authenticate = useCallback(async (credentials: EmailCredentials): Promise<AuthResult> => {
     setIsAuthenticating(true);
@@ -46,6 +47,14 @@ export function useEmailAuth(): UseEmailAuthReturn {
     emailApi.logout();
     setIsAuthenticated(false);
     setAuthError(null);
+  }, []);
+
+  // Initialize authentication state on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAuthenticated(emailApi.isAuthenticated());
+      setIsInitialized(true);
+    }
   }, []);
 
   return {

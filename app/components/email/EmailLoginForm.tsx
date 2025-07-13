@@ -47,7 +47,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
     <div className="flex items-center justify-center min-h-full p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl font-semibold">Email Login</CardTitle>
+          <CardTitle className="text-xl font-semibold">EmAilX Login</CardTitle>
           <CardDescription>
             Enter your email credentials to connect to your mailbox
           </CardDescription>

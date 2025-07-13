@@ -6,13 +6,14 @@ let emailService: ImapEmailService | null = null;
 let connectionPromise: Promise<ImapEmailService> | null = null;
 
 async function getEmailService(sessionId?: string): Promise<ImapEmailService> {
-  // If sessionId is provided, use session-based service
+  // If sessionId is provided, try session-based service first
   if (sessionId) {
     const sessionService = await getSessionEmailService(sessionId);
     if (sessionService) {
       return sessionService;
     }
-    throw new Error('Invalid or expired session. Please login again.');
+    // Session invalid, but don't throw error - fall back to env vars
+    console.log('Session invalid or expired, falling back to environment variables');
   }
 
   // Fallback to environment variables for backward compatibility
@@ -34,7 +35,16 @@ async function getEmailService(sessionId?: string): Promise<ImapEmailService> {
     } catch (error) {
       console.error('Failed to connect to IMAP service:', error);
       emailService = null;
-      throw error;
+      
+      // Provide a more helpful error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('getaddrinfo ENOTFOUND') || errorMessage.includes('connect ECONNREFUSED')) {
+        throw new Error('Unable to connect to email server. Please verify your email server settings or login with your credentials.');
+      } else if (errorMessage.includes('Invalid credentials')) {
+        throw new Error('Invalid email credentials. Please check your username and password.');
+      } else {
+        throw new Error(`Email connection failed: ${errorMessage}`);
+      }
     } finally {
       connectionPromise = null;
     }

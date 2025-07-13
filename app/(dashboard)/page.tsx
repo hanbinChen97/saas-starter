@@ -1,126 +1,183 @@
 import { Button } from '@/app/components/ui/button';
-import { ArrowRight, CreditCard, Database } from 'lucide-react';
-import { Terminal } from './terminal';
+import { ArrowRight, Mail, MessageSquare, BarChart3, Shield, Zap, Users } from 'lucide-react';
+import Link from 'next/link';
 
 export default function HomePage() {
   return (
     <main>
-      <section className="py-20">
+      {/* Hero Section */}
+      <section className="py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-12 lg:gap-8">
             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
               <h1 className="text-4xl font-bold text-gray-900 tracking-tight sm:text-5xl md:text-6xl">
-                Build Your SaaS
-                <span className="block text-orange-500">Faster Than Ever</span>
+                Welcome to 
+                <span className="block text-blue-600">EmAilX</span>
               </h1>
               <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
-                Launch your SaaS product in record time with our powerful,
-                ready-to-use template. Packed with modern technologies and
-                essential integrations.
+                The intelligent email management platform that transforms how you handle communications. 
+                Connect any email account and experience AI-powered productivity.
               </p>
-              <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
-                <a
-                  href="https://vercel.com/templates/next.js/next-js-saas-starter"
-                  target="_blank"
-                >
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-lg rounded-full"
-                  >
-                    Deploy your own
+              <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex">
+                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                  <Link href="/dashboard">
+                    Get Started
                     <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </a>
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Link href="/dashboard/emails">
+                    View Demo
+                  </Link>
+                </Button>
               </div>
             </div>
             <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
-              <Terminal />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 bg-white w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-            <div>
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-orange-500 text-white">
-                <svg viewBox="0 0 24 24" className="h-6 w-6">
-                  <path
-                    fill="currentColor"
-                    d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"
-                  />
-                </svg>
-              </div>
-              <div className="mt-5">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Next.js and React
-                </h2>
-                <p className="mt-2 text-base text-gray-500">
-                  Leverage the power of modern web technologies for optimal
-                  performance and developer experience.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 lg:mt-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-orange-500 text-white">
-                <Database className="h-6 w-6" />
-              </div>
-              <div className="mt-5">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Postgres and Drizzle ORM
-                </h2>
-                <p className="mt-2 text-base text-gray-500">
-                  Robust database solution with an intuitive ORM for efficient
-                  data management and scalability.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 lg:mt-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-orange-500 text-white">
-                <CreditCard className="h-6 w-6" />
-              </div>
-              <div className="mt-5">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Stripe Integration
-                </h2>
-                <p className="mt-2 text-base text-gray-500">
-                  Seamless payment processing and subscription management with
-                  industry-leading Stripe integration.
-                </p>
+              <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
+                <div className="relative block w-full bg-white rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 px-6 py-8">
+                    <div className="flex items-center justify-center">
+                      <div className="bg-blue-600 p-3 rounded-full">
+                        <Mail className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="mt-4 text-xl font-medium text-gray-900 text-center">
+                      Smart Email Dashboard
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600 text-center">
+                      Manage all your emails in one place with AI assistance
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Features Section */}
       <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:text-center">
+            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Everything you need for email management
+            </p>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+              EmAilX provides powerful tools to help you manage, organize, and respond to emails more efficiently.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <Mail className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Universal Email Access</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Connect to any email provider - Gmail, Outlook, Yahoo, or your custom IMAP server. 
+                  One interface for all your accounts.
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <MessageSquare className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">AI-Powered Responses</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Generate intelligent reply suggestions and compose emails with AI assistance. 
+                  Save time while maintaining your personal voice.
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <BarChart3 className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Email Analytics</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Track your email productivity with detailed analytics. Monitor response times, 
+                  email volume, and communication patterns.
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Secure & Private</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Your emails are encrypted and stored securely. We prioritize your privacy 
+                  and never access your personal communications.
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <Zap className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Lightning Fast</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Built with modern technology for instant email synchronization and 
+                  responsive interface across all devices.
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <Users className="h-6 w-6" />
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Team Collaboration</p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Share email templates, collaborate on responses, and manage team 
+                  communications efficiently.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                Ready to launch your SaaS?
+                Ready to revolutionize your email experience?
               </h2>
               <p className="mt-3 max-w-3xl text-lg text-gray-500">
-                Our template provides everything you need to get your SaaS up
-                and running quickly. Don't waste time on boilerplate - focus on
-                what makes your product unique.
+                Join thousands of users who have already transformed their email workflow with EmAilX. 
+                Connect your email account and start experiencing intelligent email management today.
               </p>
+              <div className="mt-8 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex">
+                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                  <Link href="/dashboard">
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Link href="/dashboard/emails">
+                    Try Demo
+                  </Link>
+                </Button>
+              </div>
             </div>
             <div className="mt-8 lg:mt-0 flex justify-center lg:justify-end">
-              <a href="https://github.com/nextjs/saas-starter" target="_blank">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-lg rounded-full"
-                >
-                  View the code
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Button>
-              </a>
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-lg">
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="bg-blue-600 p-4 rounded-full">
+                    <Mail className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">EmAilX</div>
+                    <div className="text-sm text-gray-600">Intelligent Email Management</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

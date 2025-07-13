@@ -2,16 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useMailCache } from '@/app/hooks/useMailCache';
+import { useEmailAuth } from '@/app/hooks/useEmailAuth';
 import { EmailList } from '@/app/components/email/EmailList';
 import { EmailView } from '@/app/components/email/EmailView';
+import { EmailLoginForm, EmailCredentials } from '@/app/components/email/EmailLoginForm';
 import { EmailMessage } from '@/app/lib/email-imap/types';
 import { EmailCache } from '@/app/lib/email-imap/database';
+import { Button } from '@/app/components/ui/button';
 
 export default function EmailsPage() {
   const [currentFolder, setCurrentFolder] = useState('INBOX');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
   const [isEmailListCollapsed, setIsEmailListCollapsed] = useState(false);
+
+  // Email authentication
+  const { 
+    isAuthenticated, 
+    isAuthenticating, 
+    authError, 
+    authenticate, 
+    logout 
+  } = useEmailAuth();
 
   const { 
     emails, 
@@ -31,9 +43,20 @@ export default function EmailsPage() {
   } = useMailCache({ 
     folder: currentFolder, 
     limit: 50,
-    autoSync: true,
+    autoSync: isAuthenticated, // Only auto-sync when authenticated
     syncInterval: 2 * 60 * 1000 // 2 minutes
   });
+
+  // Handle login
+  const handleLogin = async (credentials: EmailCredentials) => {
+    const result = await authenticate(credentials);
+    if (result.success) {
+      // Refresh emails after successful login
+      setTimeout(() => {
+        refreshEmails();
+      }, 100);
+    }
+  };
 
   // Filter emails based on unread only setting
   const filteredEmails = showUnreadOnly ? emails.filter(email => !email.isRead) : emails;
@@ -67,16 +90,27 @@ export default function EmailsPage() {
   };
 
   const handleReplyToggle = (isReplying: boolean) => {
-    // Auto-collapse email list when replying
-    if (isReplying) {
-      setIsEmailListCollapsed(true);
-    }
+    // Auto-collapse email list when replying, expand when not replying
+    setIsEmailListCollapsed(isReplying);
   };
 
   const handleFolderChange = (folder: string) => {
     setCurrentFolder(folder);
     setSelectedEmail(null); // Clear selection when changing folders
   };
+
+  // If not authenticated, show login form
+  if (!isAuthenticated) {
+    return (
+      <div className="h-full">
+        <EmailLoginForm 
+          onLogin={handleLogin} 
+          isLoading={isAuthenticating} 
+          error={authError} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -116,7 +150,7 @@ export default function EmailsPage() {
             </label>
           </div>
           
-          {/* Sync Status */}
+          {/* Sync Status and Logout */}
           <div className="flex items-center gap-2">
             {syncing && (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
@@ -127,6 +161,14 @@ export default function EmailsPage() {
             <div className="text-xs text-gray-500">
               {emails.length} emails
             </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={logout}
+              className="text-xs"
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </div>

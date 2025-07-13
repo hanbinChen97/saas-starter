@@ -33,7 +33,7 @@ export function useAIReply({ email }: UseAIReplyProps): UseAIReplyReturn {
   const draftReplyRef = useRef(draftReply);
   draftReplyRef.current = draftReply;
 
-  const callAPI = useCallback(async (userMessage?: string) => {
+  const callAPI = useCallback(async (userMessage?: string, currentConversationHistory?: ConversationMessage[]) => {
     if (!email) return;
     
     setIsLoading(true);
@@ -53,9 +53,10 @@ export function useAIReply({ email }: UseAIReplyProps): UseAIReplyReturn {
         requestBody.userFeedback = userMessage;
         requestBody.currentDraft = draftReplyRef.current;
         
-        // Include conversation history if it exists
-        if (conversationHistory.length > 0) {
-          requestBody.conversationHistory = conversationHistory;
+        // Use the passed conversation history or fall back to state
+        const historyToUse = currentConversationHistory || conversationHistory;
+        if (historyToUse.length > 0) {
+          requestBody.conversationHistory = historyToUse;
         }
       }
 
@@ -106,7 +107,7 @@ export function useAIReply({ email }: UseAIReplyProps): UseAIReplyReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [email, conversationHistory]);
+  }, [email]);
 
   const generateReply = useCallback(async () => {
     await callAPI();
@@ -120,10 +121,13 @@ export function useAIReply({ email }: UseAIReplyProps): UseAIReplyReturn {
       timestamp: new Date().toISOString(),
     };
     
+    // Update conversation history first
     setConversationHistory(prev => [...prev, userMessage]);
     
-    await callAPI(message);
-  }, [callAPI]);
+    // Then call API with the updated conversation history
+    const updatedHistory = conversationHistory.concat(userMessage);
+    await callAPI(message, updatedHistory);
+  }, [callAPI, conversationHistory]);
 
   const clearError = useCallback(() => {
     setError(null);

@@ -32,7 +32,12 @@ export function ChatInterface({
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      <h3 className="text-sm font-medium text-gray-900 mb-3">AI Assistant</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium text-gray-900">AI Assistant</h3>
+        <div className="text-xs text-gray-500">
+          {conversationHistory.length} messages
+        </div>
+      </div>
       
       {/* Chat Messages */}
       <div className="flex-1 border border-gray-300 rounded-lg bg-white flex flex-col">

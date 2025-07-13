@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createEmailService, ImapEmailService } from '@/app/lib/email-imap/email-service';
+import { getEmailService as getSessionEmailService, authenticateEmail } from '@/app/lib/email-imap/email-auth';
 
 let emailService: ImapEmailService | null = null;
 let connectionPromise: Promise<ImapEmailService> | null = null;
 
-async function getEmailService(): Promise<ImapEmailService> {
+async function getEmailService(sessionId?: string): Promise<ImapEmailService> {
+  // If sessionId is provided, use session-based service
+  if (sessionId) {
+    const sessionService = await getSessionEmailService(sessionId);
+    if (sessionService) {
+      return sessionService;
+    }
+    throw new Error('Invalid or expired session. Please login again.');
+  }
+
+  // Fallback to environment variables for backward compatibility
   if (emailService && emailService.getConnectionStatus().connected) {
     return emailService;
   }
@@ -34,9 +45,18 @@ async function getEmailService(): Promise<ImapEmailService> {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, folder = 'INBOX', limit = 50, uid } = body;
+    const { action, folder = 'INBOX', limit = 50, uid, sessionId, credentials } = body;
 
-    const service = await getEmailService();
+    // Handle authentication action
+    if (action === 'authenticate') {
+      if (!credentials) {
+        return NextResponse.json({ success: false, error: 'Credentials required' }, { status: 400 });
+      }
+      const result = await authenticateEmail(credentials);
+      return NextResponse.json(result);
+    }
+
+    const service = await getEmailService(sessionId);
 
     switch (action) {
       case 'getEmails':

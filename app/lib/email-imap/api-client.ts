@@ -2,14 +2,47 @@
 
 import { EmailMessage, EmailFolder } from './types';
 
+export interface EmailCredentials {
+  username: string;
+  password: string;
+  host: string;
+  port: number;
+  encryption: 'SSL' | 'TLS' | 'NONE';
+}
+
+export interface AuthResult {
+  success: boolean;
+  error?: string;
+  sessionId?: string;
+}
+
 class EmailApiClient {
+  private sessionId: string | null = null;
+
+  constructor() {
+    // Try to restore session from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      const storedSessionId = localStorage.getItem('email_session_id');
+      if (storedSessionId) {
+        this.sessionId = storedSessionId;
+      }
+    }
+  }
+
   private async makeRequest(action: string, params: any = {}) {
+    const requestBody: any = { action, ...params };
+    
+    // Include sessionId if available
+    if (this.sessionId) {
+      requestBody.sessionId = this.sessionId;
+    }
+
     const response = await fetch('/api/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ action, ...params }),
+      body: JSON.stringify(requestBody),
     });
 
     const result = await response.json();
@@ -19,6 +52,40 @@ class EmailApiClient {
     }
     
     return result.data;
+  }
+
+  async authenticate(credentials: EmailCredentials): Promise<AuthResult> {
+    const response = await fetch('/api/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'authenticate', credentials }),
+    });
+
+    const result = await response.json();
+    
+    if (result.success && result.sessionId) {
+      this.sessionId = result.sessionId;
+      // Persist session in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('email_session_id', result.sessionId);
+      }
+    }
+    
+    return result;
+  }
+
+  isAuthenticated(): boolean {
+    return this.sessionId !== null;
+  }
+
+  logout(): void {
+    this.sessionId = null;
+    // Clear session from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('email_session_id');
+    }
   }
 
   async getEmails(folder: string = 'INBOX', limit: number = 50): Promise<EmailMessage[]> {

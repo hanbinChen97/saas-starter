@@ -1,16 +1,3 @@
-ai segguestion 设计成两行，
-第一行是语言： 英语，德语。
-第二行是tone： 正式，非正式，更简洁。
-
-也就是promtp 里要规定六种 modification。
-
-
-
-
-
-
-
-
-
-
-
+目前，我需要EXCHANGE_USERNAME 和 password 来登录邮箱。
+我下一步继续开发，是要让用户输入账号密码的。
+在 email 页面，创建一个登入 mail 的界面，用户输入账户，密码。

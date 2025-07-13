@@ -37,7 +37,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
     applyModification,
     setDraftReply,
     resetReplyState,
-  } = useAIReply({ email: email! });
+  } = useAIReply({ email: email as EmailMessage });
 
   // Reset reply state when email changes
   useEffect(() => {
@@ -49,7 +49,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
     if (onReplyToggle) {
       onReplyToggle(false);
     }
-  }, [email?.id, resetReplyState, onReplyToggle]);
+  }, [email?.id]);
 
   // Sync reply text with AI draft (one-way only)
   useEffect(() => {
@@ -189,6 +189,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
         <div className="border-b border-gray-200 p-2 flex-shrink-0">
           <button
             onClick={() => {
+              // Combine both operations: show reply section AND collapse email list
               setShowReply(true);
               onReplyToggle?.(true);
             }}
@@ -348,7 +349,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
         </div>
       )}
 
-      {/* Mail View */}
+      {/* Mail View - Always visible */}
       <div className="flex-1">
         {/* Email Header Information */}
         <div className="border-b border-gray-200 bg-gray-50">

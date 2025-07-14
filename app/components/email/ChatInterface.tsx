@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { EmailMessage } from '@/app/lib/email-imap/types';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
 import { ConversationMessage } from '@/app/lib/email-ai/ai-prompt';
 
 interface ChatInterfaceProps {

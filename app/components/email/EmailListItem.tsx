@@ -1,7 +1,7 @@
 'use client';
 
-import { EmailMessage } from '@/app/lib/email-imap/types';
-import { EmailParser } from '@/app/lib/email-imap/email-parser';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
+import { EmailParser } from '@/app/lib/email-service/mail-imap/email-parser';
 
 interface EmailListItemProps {
   email: EmailMessage;

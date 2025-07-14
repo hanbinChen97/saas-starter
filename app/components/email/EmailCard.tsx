@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EmailMessage } from '@/app/lib/email-imap/types';
-import { EmailParser } from '@/app/lib/email-imap/email-parser';
-import { markEmailAsRead, markEmailAsUnread, deleteEmail } from '@/app/lib/email-imap/actions';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
+import { EmailParser } from '@/app/lib/email-service/mail-imap/email-parser';
+// Legacy email actions disabled for security - use authenticated email interface instead
 
 interface EmailCardProps {
   email: EmailMessage;
@@ -30,42 +30,15 @@ export function EmailCard({ email, onUpdate }: EmailCardProps) {
   });
 
   const handleMarkAsRead = async () => {
-    try {
-      const result = await markEmailAsRead(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to mark email as read:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to mark email as read:', error);
-    }
+    alert('Email actions are disabled in this legacy component. Please use the authenticated email interface.');
   };
 
   const handleMarkAsUnread = async () => {
-    try {
-      const result = await markEmailAsUnread(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to mark email as unread:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to mark email as unread:', error);
-    }
+    alert('Email actions are disabled in this legacy component. Please use the authenticated email interface.');
   };
 
   const handleDelete = async () => {
-    try {
-      const result = await deleteEmail(email.uid);
-      if (result.success && onUpdate) {
-        onUpdate();
-      } else {
-        console.error('Failed to delete email:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to delete email:', error);
-    }
+    alert('Email actions are disabled in this legacy component. Please use the authenticated email interface.');
   };
 
   return (

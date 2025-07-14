@@ -1,4 +1,24 @@
-// AI Prompt Templates for Email Reply Generation
+/**
+ * Email Reply AI Prompt Template
+ *
+ * Key Features:
+ *   - Supports both English and German, with automatic language detection.
+ *   - Provides a main draft reply and 6 structured modification options (language, tone, length, detail).
+ *   - Handles iterative feedback: incorporates user feedback and conversation history for improved drafts.
+ *   - Enforces strict JSON output for reliable downstream parsing.
+ *
+ * Prompt Structure:
+ *   1. Presents the original email (subject, from, to, content).
+ *   2. Detects and states the primary and alternative language.
+ *   3. Optionally includes additional context, current draft, conversation history, and user feedback.
+ *   4. Instructs the AI to return a JSON object with:
+ *      - draftReply: Main reply in detected language.
+ *      - aiResponse: (If iterative) Explanation of changes based on user feedback.
+ *      - modifications: 6 alternatives (2 language, 4 tone/style).
+ *   5. Provides detailed guidelines for tone, structure, and output format.
+ *
+ */
+
 import { z } from 'zod';
 
 export interface EmailReplyRequest {

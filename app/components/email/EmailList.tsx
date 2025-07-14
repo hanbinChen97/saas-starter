@@ -1,7 +1,7 @@
 'use client';
 
 import { EmailListItem } from './EmailListItem';
-import { EmailMessage } from '@/app/lib/email-imap/types';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
 import { useEffect, useRef, useCallback } from 'react';
 
 interface EmailListProps {

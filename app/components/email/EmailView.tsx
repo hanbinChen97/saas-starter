@@ -1,11 +1,13 @@
 'use client';
 
-import { EmailMessage } from '@/app/lib/email-imap/types';
-import { EmailParser } from '@/app/lib/email-imap/email-parser';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
+import { EmailParser } from '@/app/lib/email-service/mail-imap/email-parser';
 import { useState, useEffect } from 'react';
 import { useMailCache } from '@/app/hooks/useMailCache';
 import { useAIReply } from '@/app/hooks/useAIReply';
 import { ChatInterface } from './ChatInterface';
+import { sendEmailAction } from '@/app/lib/email-service/mail-smtp/actions';
+import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/lib/email-service/mail-smtp/types';
 
 interface EmailViewProps {
   email: EmailMessage | null;
@@ -15,13 +17,23 @@ interface EmailViewProps {
   onDelete?: () => Promise<void>;
   onReplyToggle?: (isReplying: boolean) => void;
   onBack?: () => void;
+  userCredentials?: {
+    username: string;
+    emailAddress: string;
+  };
 }
 
-export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDelete, onReplyToggle, onBack }: EmailViewProps) {
+export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDelete, onReplyToggle, onBack, userCredentials }: EmailViewProps) {
   const [emailBody, setEmailBody] = useState<{ text?: string; html?: string } | null>(null);
   const [loadingBody, setLoadingBody] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [replyStatus, setReplyStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [authCredentials, setAuthCredentials] = useState({ username: '', password: '', senderEmail: '' });
+  const [needPassword, setNeedPassword] = useState(false);
+  const [tempPassword, setTempPassword] = useState('');
   const { getEmailBody } = useMailCache();
   
   // AI Reply functionality
@@ -43,6 +55,11 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
   useEffect(() => {
     setShowReply(false);
     setReplyText('');
+    setReplyStatus(null);
+    setShowAuthForm(false);
+    setNeedPassword(false);
+    setTempPassword('');
+    setAuthCredentials({ username: '', password: '', senderEmail: '' });
     resetReplyState();
     
     // Notify parent that we're no longer replying
@@ -95,6 +112,121 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  const handleSendReply = async () => {
+    if (!email || !replyText.trim()) {
+      setReplyStatus({ type: 'error', message: 'Please enter a reply message' });
+      return;
+    }
+
+    // If user credentials are available, ask for password only
+    if (userCredentials) {
+      setNeedPassword(true);
+    } else {
+      // Show auth form to collect credentials
+      setShowAuthForm(true);
+    }
+  };
+
+  const handleSendWithUserCredentials = async () => {
+    if (!tempPassword.trim()) {
+      setReplyStatus({ type: 'error', message: 'Please enter your password' });
+      return;
+    }
+
+    setSendingReply(true);
+    setReplyStatus(null);
+    setNeedPassword(false);
+
+    try {
+      const smtpAuthConfig: SMTPAuthRequest = {
+        username: userCredentials!.username,
+        password: tempPassword,
+        host: 'mail.rwth-aachen.de',
+        port: 587,
+        secure: false,
+        senderEmail: userCredentials!.emailAddress,
+      };
+
+      const replySubject = email!.subject.startsWith('Re:') ? email!.subject : `Re: ${email!.subject}`;
+      
+      const emailOptions: SMTPSendOptions = {
+        password: tempPassword,
+        to: [email!.from.address],
+        subject: replySubject,
+        text: replyText.trim(),
+      };
+
+      const result = await sendEmailAction(smtpAuthConfig, emailOptions);
+      
+      if (result.success) {
+        setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
+        setReplyText('');
+        setShowReply(false);
+        setTempPassword('');
+        onReplyToggle?.(false);
+        resetReplyState();
+        onUpdate?.();
+      } else {
+        setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
+      }
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      setReplyStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
+  const handleSendWithCredentials = async () => {
+    if (!authCredentials.username || !authCredentials.password || !authCredentials.senderEmail) {
+      setReplyStatus({ type: 'error', message: 'Please enter login username, password, and your real email address' });
+      return;
+    }
+
+    setSendingReply(true);
+    setReplyStatus(null);
+    setShowAuthForm(false);
+
+    try {
+      const smtpAuthConfig: SMTPAuthRequest = {
+        username: authCredentials.username,
+        password: authCredentials.password,
+        host: 'mail.rwth-aachen.de',
+        port: 587,
+        secure: false, // Use STARTTLS for port 587
+        senderEmail: authCredentials.senderEmail.trim() || undefined,
+      };
+
+      const replySubject = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`;
+      
+      const emailOptions: SMTPSendOptions = {
+        password: authCredentials.password,
+        to: [email.from.address],
+        subject: replySubject,
+        text: replyText.trim(),
+      };
+
+      const result = await sendEmailAction(smtpAuthConfig, emailOptions);
+      
+      if (result.success) {
+        setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
+        setReplyText('');
+        setShowReply(false);
+        setAuthCredentials({ username: '', password: '', senderEmail: '' });
+        onReplyToggle?.(false);
+        resetReplyState();
+        onUpdate?.();
+      } else {
+        setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
+      }
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      setReplyStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
+    } finally {
+      setSendingReply(false);
+    }
+  };
 
   const handleMarkAsRead = async () => {
     if (onMarkAsRead) {
@@ -251,6 +383,27 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                       </button>
                     </div>
                   )}
+
+                  {/* Reply Status Display */}
+                  {replyStatus && (
+                    <div className={`mt-2 text-xs p-2 rounded ${
+                      replyStatus.type === 'success' 
+                        ? 'text-green-600 bg-green-50' 
+                        : 'text-red-600 bg-red-50'
+                    }`}>
+                      {replyStatus.message}
+                      <button
+                        onClick={() => setReplyStatus(null)}
+                        className={`ml-2 ${
+                          replyStatus.type === 'success' 
+                            ? 'text-green-800 hover:text-green-900' 
+                            : 'text-red-800 hover:text-red-900'
+                        }`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Reply Content */}
@@ -315,18 +468,114 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                   </div>
                 )}
                 
+                {/* Authentication Form */}
+                {showAuthForm && (
+                  <div className="border-t border-gray-200 p-3 bg-gray-50 flex-shrink-0">
+                    <div className="text-xs text-gray-600 mb-2">Enter your email credentials to send:</div>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <input
+                        type="email"
+                        value={authCredentials.username}
+                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, username: e.target.value }))}
+                        placeholder="Login: ab123456@rwth-aachen.de"
+                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <input
+                        type="password"
+                        value={authCredentials.password}
+                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="Password"
+                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <input
+                        type="email"
+                        value={authCredentials.senderEmail}
+                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, senderEmail: e.target.value }))}
+                        placeholder="Your real email: max.mustermann@rwth-aachen.de (required)"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setShowAuthForm(false)}
+                        className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSendWithCredentials}
+                        disabled={!authCredentials.username || !authCredentials.password}
+                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        Send Reply
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Password Only Form for Logged Users */}
+                {needPassword && (
+                  <div className="border-t border-gray-200 p-3 bg-blue-50 flex-shrink-0">
+                    <div className="text-xs text-gray-600 mb-2">
+                      Sending as: {userCredentials?.emailAddress}
+                    </div>
+                    <div className="mb-2">
+                      <input
+                        type="password"
+                        value={tempPassword}
+                        onChange={(e) => setTempPassword(e.target.value)}
+                        placeholder="Enter your password to send"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendWithUserCredentials()}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setNeedPassword(false)}
+                        className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSendWithUserCredentials}
+                        disabled={!tempPassword.trim()}
+                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        Send Reply
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Reply Actions */}
                 <div className="border-t border-gray-200 p-2 flex justify-end items-center flex-shrink-0">
                   <div className="flex gap-2">
-                    <button className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
-                      Send
+                    <button 
+                      onClick={handleSendReply}
+                      disabled={sendingReply || !replyText.trim()}
+                      className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      {sendingReply ? (
+                        <>
+                          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        'Send'
+                      )}
                     </button>
                     <button 
                       onClick={() => {
                         setShowReply(false);
+                        setReplyStatus(null);
                         onReplyToggle?.(false);
                       }}
-                      className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50"
+                      disabled={sendingReply}
+                      className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>

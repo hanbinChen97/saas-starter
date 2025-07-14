@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { EmailMessage } from '@/app/lib/email-imap/types';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
 import { EmailReplyResponse, EmailModification, ConversationMessage, validateEmailReplyResponse } from '@/app/lib/email-ai/ai-prompt';
 
 interface UseAIReplyProps {

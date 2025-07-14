@@ -6,15 +6,21 @@ import { useEmailAuth } from '@/app/hooks/useEmailAuth';
 import { EmailList } from '@/app/components/email/EmailList';
 import { EmailView } from '@/app/components/email/EmailView';
 import { EmailLoginForm, EmailCredentials } from '@/app/components/email/EmailLoginForm';
-import { EmailMessage } from '@/app/lib/email-imap/types';
-import { EmailCache } from '@/app/lib/email-imap/database';
+import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
+import { EmailCache } from '@/app/lib/email-service/mail-imap/database';
 import { Button } from '@/app/components/ui/button';
+import { EmailCompose } from '@/app/components/email/EmailCompose';
+import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
+import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
+import { Dialog, DialogContent, DialogTrigger } from '@/app/components/ui/dialog';
 
 export default function EmailsPage() {
   const [currentFolder, setCurrentFolder] = useState('INBOX');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
   const [isEmailListCollapsed, setIsEmailListCollapsed] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeReplyTo, setComposeReplyTo] = useState<{ to: string; subject: string; originalMessage?: string } | undefined>();
 
   // Email authentication
   const { 
@@ -27,6 +33,7 @@ export default function EmailsPage() {
 
   // Hydration fix: wait for client-side initialization
   const [isClient, setIsClient] = useState(false);
+  const [emailCredentials, setEmailCredentials] = useState<{ username: string; emailAddress: string } | null>(null);
   
   useEffect(() => {
     setIsClient(true);
@@ -59,6 +66,10 @@ export default function EmailsPage() {
   const handleLogin = async (credentials: EmailCredentials) => {
     const result = await authenticate(credentials);
     if (result.success) {
+      setEmailCredentials({ 
+        username: credentials.username,
+        emailAddress: credentials.emailAddress 
+      });
       // Refresh emails after successful login
       setTimeout(() => {
         refreshEmails();
@@ -167,8 +178,52 @@ export default function EmailsPage() {
             </label>
           </div>
           
-          {/* Sync Status and Logout */}
+          {/* Compose and Status */}
           <div className="flex items-center gap-2">
+            <Dialog open={showCompose} onOpenChange={setShowCompose}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="text-xs"
+                  title="Compose new email"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Compose
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                {emailCredentials && isAuthenticated ? (
+                  <EmailCompose
+                    smtpConfig={getSMTPConfig(emailCredentials.username, emailCredentials.emailAddress)}
+                    replyTo={composeReplyTo}
+                    onClose={() => {
+                      setShowCompose(false);
+                      setComposeReplyTo(undefined);
+                    }}
+                    onEmailSent={() => {
+                      setShowCompose(false);
+                      setComposeReplyTo(undefined);
+                    }}
+                  />
+                ) : (
+                  <EmailComposeSimple
+                    replyTo={composeReplyTo}
+                    onClose={() => {
+                      setShowCompose(false);
+                      setComposeReplyTo(undefined);
+                    }}
+                    onEmailSent={() => {
+                      setShowCompose(false);
+                      setComposeReplyTo(undefined);
+                    }}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+            
             {syncing && (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
@@ -278,6 +333,7 @@ export default function EmailsPage() {
             }}
             onReplyToggle={handleReplyToggle}
             onBack={() => setSelectedEmail(null)}
+            userCredentials={emailCredentials || undefined}
           />
         </div>
       </div>

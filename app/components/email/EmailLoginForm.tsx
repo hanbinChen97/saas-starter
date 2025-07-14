@@ -15,6 +15,7 @@ interface EmailLoginFormProps {
 export interface EmailCredentials {
   username: string;
   password: string;
+  emailAddress: string; // Actual email address for sending emails
   host: string;
   port: number;
   encryption: 'SSL' | 'TLS' | 'NONE';
@@ -24,6 +25,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
   const [credentials, setCredentials] = useState<EmailCredentials>({
     username: '',
     password: '',
+    emailAddress: '',
     host: 'mail.rwth-aachen.de',
     port: 993,
     encryption: 'SSL'
@@ -31,7 +33,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (credentials.username && credentials.password) {
+    if (credentials.username && credentials.password && credentials.emailAddress) {
       await onLogin(credentials);
     }
   };
@@ -61,13 +63,13 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="username">Username / Email</Label>
+              <Label htmlFor="username">Login Username</Label>
               <Input
                 id="username"
                 type="text"
                 value={credentials.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="your.email@domain.com"
+                placeholder="ab123456@rwth-aachen.de"
                 required
                 disabled={isLoading}
               />
@@ -84,6 +86,20 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
                 required
                 disabled={isLoading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="emailAddress">Your Email Address</Label>
+              <Input
+                id="emailAddress"
+                type="email"
+                value={credentials.emailAddress}
+                onChange={(e) => handleInputChange('emailAddress', e.target.value)}
+                placeholder="max.mustermann@rwth-aachen.de"
+                required
+                disabled={isLoading}
+              />
+              <p className="text-xs text-gray-500">This will be used as the sender address for outgoing emails</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -132,7 +148,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !credentials.username || !credentials.password}
+              disabled={isLoading || !credentials.username || !credentials.password || !credentials.emailAddress}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

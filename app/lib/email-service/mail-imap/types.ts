@@ -45,9 +45,13 @@ export interface EmailConnectionConfig {
   tls: boolean;
   tlsOptions?: {
     rejectUnauthorized: boolean;
+    secureProtocol?: string;
   };
   authTimeout?: number;
   connTimeout?: number;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: boolean;
 }
 
 export interface EmailFetchOptions {
@@ -60,6 +64,18 @@ export interface EmailFetchOptions {
   startDate?: Date;
 }
 
+export interface SendEmailOptions {
+  to: EmailAddress[];
+  cc?: EmailAddress[];
+  bcc?: EmailAddress[];
+  subject: string;
+  text?: string;
+  html?: string;
+  replyTo?: EmailAddress;
+  inReplyTo?: string;
+  references?: string;
+}
+
 export interface EmailService {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
@@ -68,4 +84,5 @@ export interface EmailService {
   markAsRead(uid: number): Promise<void>;
   markAsUnread(uid: number): Promise<void>;
   deleteEmail(uid: number): Promise<void>;
+  sendEmail(options: SendEmailOptions): Promise<void>;
 }

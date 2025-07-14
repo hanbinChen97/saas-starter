@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { EmailMessage, EmailFolder } from '@/app/lib/email-imap/types';
-import { EmailCache, emailDB } from '@/app/lib/email-imap/database';
-import { emailApi } from '@/app/lib/email-imap/api-client';
+import { EmailMessage, EmailFolder } from '@/app/lib/email-service/mail-imap/types';
+import { EmailCache, emailDB } from '@/app/lib/email-service/mail-imap/database';
+import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
 
 interface UseMailCacheOptions {
   folder?: string;
@@ -61,6 +61,14 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
   // Load emails from cache first, then sync with server
   const loadEmails = useCallback(async (useCache = true) => {
+    // If not authenticated, stop loading and clear state
+    if (!isAuthenticated) {
+      setLoading(false);
+      setError(null);
+      setEmails([]);
+      return;
+    }
+
     try {
       setError(null);
       
@@ -73,8 +81,8 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
         }
       }
 
-      // Then sync with server in background
-      if (autoSync) {
+      // Then sync with server in background (only if authenticated)
+      if (autoSync && isAuthenticated) {
         await syncEmails();
       }
     } catch (err) {
@@ -83,10 +91,16 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     } finally {
       setLoading(false);
     }
-  }, [folder, currentLimit, autoSync]);
+  }, [folder, currentLimit, autoSync, isAuthenticated]);
 
   // Sync emails with server
   const syncEmails = useCallback(async () => {
+    // Don't sync if not authenticated
+    if (!isAuthenticated) {
+      console.log('[Sync] Skipping sync - user not authenticated');
+      return;
+    }
+
     try {
       setSyncing(true);
       setError(null);
@@ -167,11 +181,11 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     } finally {
       setSyncing(false);
     }
-  }, [folder, currentLimit]);
+  }, [folder, currentLimit, isAuthenticated]);
 
   // Load more emails (pagination)
   const loadMoreEmails = useCallback(async () => {
-    if (!hasMoreEmails || loading || syncing) return;
+    if (!hasMoreEmails || loading || syncing || !isAuthenticated) return;
 
     try {
       setLoading(true);

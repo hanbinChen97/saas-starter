@@ -1,10 +1,11 @@
 import Imap from 'node-imap';
 import { simpleParser, ParsedMail } from 'mailparser';
-import { EmailMessage, EmailFolder, EmailFetchOptions, EmailConnectionConfig, EmailService } from './types';
+import { EmailMessage, EmailFolder, EmailFetchOptions, EmailConnectionConfig, EmailService, SendEmailOptions } from './types';
 import { EmailParser } from './email-parser';
 
 export class ImapEmailService implements EmailService {
   private imap: Imap;
+  private smtpTransporter: any;
   private config: EmailConnectionConfig;
   private isConnected = false;
 
@@ -16,13 +17,54 @@ export class ImapEmailService implements EmailService {
       host: config.host,
       port: config.port,
       tls: config.tls,
-      tlsOptions: config.tlsOptions || { rejectUnauthorized: false },
+      tlsOptions: config.tlsOptions || { 
+        rejectUnauthorized: false,
+        secureProtocol: 'TLSv1_2_method'
+      },
       authTimeout: config.authTimeout || 3000,
       connTimeout: config.connTimeout || 10000,
       keepalive: false,
     });
 
+    // SMTP transporter will be initialized when needed
+    this.smtpTransporter = null;
+
     this.setupEventHandlers();
+  }
+
+  private async initSMTPTransporter(): Promise<void> {
+    if (this.smtpTransporter) return;
+    
+    try {
+      const nodemailer = require('nodemailer');
+      
+      // Use the correct function name: createTransport (not createTransporter)
+      // Try SSL on port 465 first, fallback to STARTTLS on 587
+      const smtpPort = this.config.smtpPort || 465;
+      const useSSL = smtpPort === 465;
+      
+      this.smtpTransporter = nodemailer.createTransport({
+        host: this.config.smtpHost || this.config.host,
+        port: smtpPort,
+        secure: useSSL, // true for 465 (SSL), false for 587 (STARTTLS)
+        auth: {
+          user: this.config.username,
+          pass: this.config.password,
+        },
+        tls: {
+          rejectUnauthorized: false,
+          servername: this.config.smtpHost || this.config.host,
+        },
+        connectionTimeout: 60000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+        debug: true,
+        logger: true,
+      });
+    } catch (error) {
+      console.error('Failed to initialize SMTP transporter:', error);
+      throw new Error(`Failed to initialize email sending: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private setupEventHandlers(): void {
@@ -49,12 +91,16 @@ export class ImapEmailService implements EmailService {
         return;
       }
 
+      console.log(`Attempting IMAP connection to ${this.config.host}:${this.config.port} with user ${this.config.username}`);
+
       this.imap.once('ready', () => {
+        console.log('IMAP connection ready');
         this.isConnected = true;
         resolve();
       });
 
       this.imap.once('error', (err: Error) => {
+        console.error('IMAP connection error during connect:', err);
         this.isConnected = false;
         reject(err);
       });
@@ -506,6 +552,38 @@ export class ImapEmailService implements EmailService {
     });
   }
 
+  async sendEmail(options: SendEmailOptions): Promise<void> {
+    // Initialize SMTP transporter if not already done
+    await this.initSMTPTransporter();
+
+    const mailOptions = {
+      from: {
+        name: this.config.username.split('@')[0], // Use username part as display name
+        address: this.config.username
+      },
+      to: options.to.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address),
+      cc: options.cc?.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address),
+      bcc: options.bcc?.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address),
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+      replyTo: options.replyTo ? (options.replyTo.name ? `${options.replyTo.name} <${options.replyTo.address}>` : options.replyTo.address) : this.config.username,
+      inReplyTo: options.inReplyTo,
+      references: options.references,
+      envelope: {
+        from: this.config.username, // Explicitly set envelope sender
+        to: options.to.map(addr => addr.address)
+      }
+    };
+
+    try {
+      await this.smtpTransporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   getConnectionStatus() {
     return {
       connected: this.isConnected,
@@ -518,18 +596,30 @@ export class ImapEmailService implements EmailService {
   }
 }
 
-// Factory function to create email service instance
-export function createEmailService(): ImapEmailService {
+// Factory function to create email service instance with user credentials
+export function createEmailService(username?: string, password?: string): ImapEmailService {
+  // Only use environment variables for server configuration, never for user credentials
   const config: EmailConnectionConfig = {
     host: process.env.RWTH_MAIL_SERVER!,
     port: parseInt(process.env.RWTH_MAIL_SERVER_IMAP_PORT!),
-    username: process.env.EXCHANGE_USERNAME!,
-    password: process.env.EXCHANGE_PASSWORD!,
+    username: username || '', // User must provide username
+    password: password || '', // User must provide password
     tls: process.env.RWTH_MAIL_SERVER_ENCRYPTION === 'SSL',
-    tlsOptions: { rejectUnauthorized: false },
+    tlsOptions: { 
+      rejectUnauthorized: false,
+      secureProtocol: 'TLSv1_2_method'
+    },
     authTimeout: 10000,
     connTimeout: 15000,
+    smtpHost: process.env.RWTH_MAIL_SERVER_SMTP_HOST || process.env.RWTH_MAIL_SERVER!,
+    smtpPort: parseInt(process.env.RWTH_MAIL_SERVER_SMTP_PORT || '587'),
+    smtpSecure: process.env.RWTH_MAIL_SERVER_SMTP_SECURE === 'true',
   };
 
   return new ImapEmailService(config);
+}
+
+// Legacy function for backward compatibility - throws error to enforce user login
+export function createEmailServiceFromEnv(): never {
+  throw new Error('User credentials must be provided through login form for security. Environment variable authentication is disabled.');
 }

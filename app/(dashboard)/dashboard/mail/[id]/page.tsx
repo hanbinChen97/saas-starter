@@ -44,7 +44,14 @@ export default function MailDetailPage() {
   // Check authentication and redirect if not authenticated
   useEffect(() => {
     if (isClient && !isAuthenticated && !isAuthenticating) {
-      router.push('/dashboard/mail');
+      // Add a small delay to avoid race conditions during hydration
+      const timeoutId = setTimeout(() => {
+        if (!isAuthenticated && !isAuthenticating) {
+          router.push('/dashboard/mail');
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [isClient, isAuthenticated, isAuthenticating, router]);
 
@@ -137,16 +144,22 @@ export default function MailDetailPage() {
   if (!isClient) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // If not authenticated, redirect is handled by useEffect
+  // If not authenticated, show loading while redirecting
   if (!isAuthenticated) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Checking authentication...</p>
+        </div>
       </div>
     );
   }

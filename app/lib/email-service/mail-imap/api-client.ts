@@ -18,17 +18,24 @@ export interface AuthResult {
 
 class EmailApiClient {
   private sessionId: string | null = null;
+  private isInitialized: boolean = false;
 
   constructor() {
     // Session will be initialized on client side
   }
 
   private initializeSession(): void {
-    if (typeof window !== 'undefined' && this.sessionId === null) {
-      const storedSessionId = localStorage.getItem('email_session_id');
-      if (storedSessionId) {
-        this.sessionId = storedSessionId;
+    if (typeof window !== 'undefined' && !this.isInitialized) {
+      try {
+        const storedSessionId = localStorage.getItem('email_session_id');
+        if (storedSessionId) {
+          this.sessionId = storedSessionId;
+        }
+      } catch (error) {
+        // Handle cases where localStorage is not available or throws errors
+        console.warn('Could not access localStorage for email session:', error);
       }
+      this.isInitialized = true;
     }
   }
 
@@ -74,7 +81,11 @@ class EmailApiClient {
       this.sessionId = result.sessionId;
       // Persist session in localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('email_session_id', result.sessionId);
+        try {
+          localStorage.setItem('email_session_id', result.sessionId);
+        } catch (error) {
+          console.warn('Could not save email session to localStorage:', error);
+        }
       }
     }
     
@@ -88,9 +99,14 @@ class EmailApiClient {
 
   logout(): void {
     this.sessionId = null;
+    this.isInitialized = false;
     // Clear session from localStorage
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('email_session_id');
+      try {
+        localStorage.removeItem('email_session_id');
+      } catch (error) {
+        console.warn('Could not clear email session from localStorage:', error);
+      }
     }
   }
 

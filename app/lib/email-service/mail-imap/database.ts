@@ -52,43 +52,72 @@ class EmailDatabase extends Dexie {
   }
 }
 
-// Create database instance
-export const emailDB = new EmailDatabase();
+// Create database instance with error handling
+let emailDB: EmailDatabase;
+try {
+  emailDB = new EmailDatabase();
+} catch (error) {
+  console.error('Failed to initialize email database:', error);
+  // Create a fallback that doesn't crash the app
+  emailDB = {} as EmailDatabase;
+}
+
+export { emailDB };
 
 // Database utility functions
 export class EmailCache {
   
   // Cache emails with metadata
   static async cacheEmails(emails: EmailMessage[], folder: string): Promise<void> {
-    const cachedEmails: CachedEmailMessage[] = emails.map(email => ({
-      ...email,
-      date: (email.date instanceof Date ? email.date : new Date(email.date)).toISOString(),
-      cachedAt: new Date().toISOString(),
-      folder,
-      bodyLoaded: !!email.html || !!email.text
-    }));
+    try {
+      if (!emailDB.emails) {
+        console.warn('Email database not available, skipping cache operation');
+        return;
+      }
 
-    await emailDB.emails.bulkPut(cachedEmails);
+      const cachedEmails: CachedEmailMessage[] = emails.map(email => ({
+        ...email,
+        date: (email.date instanceof Date ? email.date : new Date(email.date)).toISOString(),
+        cachedAt: new Date().toISOString(),
+        folder,
+        bodyLoaded: !!email.html || !!email.text
+      }));
+
+      await emailDB.emails.bulkPut(cachedEmails);
+    } catch (error) {
+      console.error('Failed to cache emails:', error);
+      // Don't throw - caching is not critical for functionality
+    }
   }
 
   // Get cached emails for a folder
   static async getCachedEmails(folder: string, limit?: number): Promise<EmailMessage[]> {
-    let collection = emailDB.emails
-      .where('folder')
-      .equals(folder);
+    try {
+      if (!emailDB.emails) {
+        console.warn('Email database not available, returning empty list');
+        return [];
+      }
 
-    // Get all emails and sort by date (newest first)
-    const cachedEmails = await collection.toArray();
-    const sortedEmails = cachedEmails.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+      let collection = emailDB.emails
+        .where('folder')
+        .equals(folder);
 
-    const finalEmails = limit ? sortedEmails.slice(0, limit) : sortedEmails;
-    
-    return finalEmails.map(cached => ({
-      ...cached,
-      date: new Date(cached.date)
-    }));
+      // Get all emails and sort by date (newest first)
+      const cachedEmails = await collection.toArray();
+      const sortedEmails = cachedEmails.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      const finalEmails = limit ? sortedEmails.slice(0, limit) : sortedEmails;
+      
+      return finalEmails.map(cached => ({
+        ...cached,
+        date: new Date(cached.date)
+      }));
+    } catch (error) {
+      console.error('Failed to get cached emails:', error);
+      return [];
+    }
   }
 
   // Cache email body separately for performance
@@ -130,19 +159,37 @@ export class EmailCache {
 
   // Update sync info
   static async updateSyncInfo(folder: string, lastUid: number): Promise<void> {
-    const syncInfo: SyncInfo = {
-      id: `sync_${folder}`,
-      folder,
-      lastSyncTime: new Date().toISOString(),
-      lastUid
-    };
+    try {
+      if (!emailDB.syncInfo) {
+        console.warn('Email database not available, skipping sync info update');
+        return;
+      }
 
-    await emailDB.syncInfo.put(syncInfo);
+      const syncInfo: SyncInfo = {
+        id: `sync_${folder}`,
+        folder,
+        lastSyncTime: new Date().toISOString(),
+        lastUid
+      };
+
+      await emailDB.syncInfo.put(syncInfo);
+    } catch (error) {
+      console.error('Failed to update sync info:', error);
+    }
   }
 
   // Get sync info for incremental sync
   static async getSyncInfo(folder: string): Promise<SyncInfo | undefined> {
-    return await emailDB.syncInfo.get(`sync_${folder}`);
+    try {
+      if (!emailDB.syncInfo) {
+        console.warn('Email database not available, returning no sync info');
+        return undefined;
+      }
+      return await emailDB.syncInfo.get(`sync_${folder}`);
+    } catch (error) {
+      console.error('Failed to get sync info:', error);
+      return undefined;
+    }
   }
 
   // Clear old cache (cleanup)

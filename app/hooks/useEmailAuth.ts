@@ -49,11 +49,28 @@ export function useEmailAuth(): UseEmailAuthReturn {
     setAuthError(null);
   }, []);
 
-  // Initialize authentication state on client side
+  // Initialize authentication state on client side with proper hydration handling
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsAuthenticated(emailApi.isAuthenticated());
-      setIsInitialized(true);
+      // Use a small delay to ensure complete hydration
+      const initializeAuth = () => {
+        try {
+          const authState = emailApi.isAuthenticated();
+          setIsAuthenticated(authState);
+        } catch (error) {
+          console.warn('Error checking authentication state:', error);
+          setIsAuthenticated(false);
+        } finally {
+          setIsInitialized(true);
+        }
+      };
+
+      // Initialize immediately if DOM is ready, otherwise wait for next tick
+      if (document.readyState === 'complete') {
+        initializeAuth();
+      } else {
+        setTimeout(initializeAuth, 0);
+      }
     }
   }, []);
 

@@ -18,7 +18,7 @@ export default function DashboardLayout({
 
   // Auto-collapse sidebar when entering email page
   useEffect(() => {
-    if (pathname === '/dashboard/emails') {
+    if (pathname.startsWith('/dashboard/mail')) {
       setIsSidebarCollapsed(true);
     }
   }, [pathname]);
@@ -26,7 +26,7 @@ export default function DashboardLayout({
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/workspace', icon: Briefcase, label: 'Workspace' },
-    { href: '/dashboard/emails', icon: Mail, label: 'Emails' }
+    { href: '/dashboard/mail', icon: Mail, label: 'Emails' }
   ];
 
   const settingsSubItems = [

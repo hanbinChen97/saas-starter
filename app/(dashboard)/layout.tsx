@@ -60,7 +60,7 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col gap-1">
         <DropdownMenuItem className="cursor-pointer">
-          <Link href="/dashboard/emails" className="flex w-full items-center">
+          <Link href="/dashboard/mail" className="flex w-full items-center">
             <Home className="mr-2 h-3 w-3" />
             <span>Emails</span>
           </Link>
@@ -82,7 +82,7 @@ function Header() {
   return (
     <header className="border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/dashboard/emails" className="flex items-center">
+        <Link href="/dashboard/mail" className="flex items-center">
           <CircleIcon className="h-5 w-5 text-orange-500" />
           <span className="ml-2 text-lg font-semibold text-gray-900">EmAilX</span>
         </Link>
@@ -98,9 +98,9 @@ function Header() {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex flex-col h-screen overflow-hidden">
+    <section className="flex flex-col min-h-screen">
       <Header />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1">
         {children}
       </div>
     </section>

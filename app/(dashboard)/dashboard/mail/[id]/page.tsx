@@ -1,20 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useMailCache } from '@/app/hooks/useMailCache';
 import { useEmailAuth } from '@/app/hooks/useEmailAuth';
 import { EmailList } from '@/app/components/email/EmailList';
 import { EmailView } from '@/app/components/email/EmailView';
-import { EmailLoginForm, EmailCredentials } from '@/app/components/email/EmailLoginForm';
 import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
-import { EmailCache } from '@/app/lib/email-service/mail-imap/database';
 import { Button } from '@/app/components/ui/button';
 import { EmailCompose } from '@/app/components/email/EmailCompose';
 import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
 import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
 import { Dialog, DialogContent, DialogTrigger } from '@/app/components/ui/dialog';
 
-export default function EmailsPage() {
+export default function MailDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const emailId = params.id as string;
+  
   const [currentFolder, setCurrentFolder] = useState('INBOX');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
@@ -27,7 +30,6 @@ export default function EmailsPage() {
     isAuthenticated, 
     isAuthenticating, 
     authError, 
-    authenticate, 
     logout 
   } = useEmailAuth();
 
@@ -38,6 +40,13 @@ export default function EmailsPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Check authentication and redirect if not authenticated
+  useEffect(() => {
+    if (isClient && !isAuthenticated && !isAuthenticating) {
+      router.push('/dashboard/mail');
+    }
+  }, [isClient, isAuthenticated, isAuthenticating, router]);
 
   const { 
     emails, 
@@ -62,24 +71,25 @@ export default function EmailsPage() {
     isAuthenticated: isAuthenticated && isClient // Pass authentication state
   });
 
-  // Handle login
-  const handleLogin = async (credentials: EmailCredentials) => {
-    const result = await authenticate(credentials);
-    if (result.success) {
-      setEmailCredentials({ 
-        username: credentials.username,
-        emailAddress: credentials.emailAddress 
-      });
-      // Refresh emails after successful login
-      setTimeout(() => {
-        refreshEmails();
-      }, 100);
-    }
+  // Decode email address from URL ID
+  const decodeEmailId = (id: string): string => {
+    // This is a simplified decode - in real implementation, you'd need to store the full email mapping
+    return `${id}@rwth-aachen.de`; // Assuming RWTH domain, adjust as needed
   };
+
+  // Set email credentials based on URL ID
+  useEffect(() => {
+    if (isClient && isAuthenticated && emailId) {
+      const decodedEmail = decodeEmailId(emailId);
+      setEmailCredentials({
+        username: emailId,
+        emailAddress: decodedEmail
+      });
+    }
+  }, [isClient, isAuthenticated, emailId]);
 
   // Filter emails based on unread only setting
   const filteredEmails = showUnreadOnly ? emails.filter(email => !email.isRead) : emails;
-
 
   const handleUnreadOnlyToggle = () => {
     setShowUnreadOnly(!showUnreadOnly);
@@ -118,6 +128,11 @@ export default function EmailsPage() {
     setSelectedEmail(null); // Clear selection when changing folders
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/dashboard/mail');
+  };
+
   // Show loading during hydration
   if (!isClient) {
     return (
@@ -127,15 +142,11 @@ export default function EmailsPage() {
     );
   }
 
-  // If not authenticated, show login form
+  // If not authenticated, redirect is handled by useEffect
   if (!isAuthenticated) {
     return (
-      <div className="h-full">
-        <EmailLoginForm 
-          onLogin={handleLogin} 
-          isLoading={isAuthenticating} 
-          error={authError} 
-        />
+      <div className="h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
   }
@@ -148,6 +159,7 @@ export default function EmailsPage() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-lg font-semibold text-gray-900">EmAilX Center</h1>
+              <p className="text-xs text-gray-500">{decodeEmailId(emailId)}</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-700">
@@ -236,7 +248,7 @@ export default function EmailsPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={logout}
+              onClick={handleLogout}
               className="text-xs"
             >
               Logout

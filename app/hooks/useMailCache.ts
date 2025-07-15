@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { EmailMessage, EmailFolder } from '@/app/lib/email-service/mail-imap/types';
-import { EmailCache, emailDB } from '@/app/lib/email-service/mail-imap/database';
+import { EmailCache, getEmailDB } from '@/app/lib/email-service/mail-imap/database';
 import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
 
 interface UseMailCacheOptions {
@@ -319,7 +319,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       
       if (freshEmails.length > 0) {
         // Clear old emails from cache for this folder first
-        await emailDB.emails.where('folder').equals(folder).delete();
+        await getEmailDB().emails.where('folder').equals(folder).delete();
         
         // Cache the fresh emails
         await EmailCache.cacheEmails(freshEmails, folder);

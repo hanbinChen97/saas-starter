@@ -52,8 +52,22 @@ class EmailDatabase extends Dexie {
   }
 }
 
-// Create database instance
-export const emailDB = new EmailDatabase();
+// Create database instance (only on client side)
+let emailDB: EmailDatabase | null = null;
+
+function getEmailDB(): EmailDatabase {
+  if (typeof window === 'undefined') {
+    throw new Error('EmailDatabase can only be used on the client side');
+  }
+  
+  if (!emailDB) {
+    emailDB = new EmailDatabase();
+  }
+  
+  return emailDB;
+}
+
+export { getEmailDB };
 
 // Database utility functions
 export class EmailCache {
@@ -68,12 +82,12 @@ export class EmailCache {
       bodyLoaded: !!email.html || !!email.text
     }));
 
-    await emailDB.emails.bulkPut(cachedEmails);
+    await getEmailDB().emails.bulkPut(cachedEmails);
   }
 
   // Get cached emails for a folder
   static async getCachedEmails(folder: string, limit?: number): Promise<EmailMessage[]> {
-    let collection = emailDB.emails
+    let collection = getEmailDB().emails
       .where('folder')
       .equals(folder);
 
@@ -101,15 +115,15 @@ export class EmailCache {
       cachedAt: new Date().toISOString()
     };
 
-    await emailDB.emailBodies.put(body);
+    await getEmailDB().emailBodies.put(body);
     
     // Update email to mark body as loaded
-    await emailDB.emails.update(emailId, { bodyLoaded: true });
+    await getEmailDB().emails.update(emailId, { bodyLoaded: true });
   }
 
   // Get cached email body
   static async getCachedEmailBody(emailId: string): Promise<CachedEmailBody | undefined> {
-    return await emailDB.emailBodies.get(emailId);
+    return await getEmailDB().emailBodies.get(emailId);
   }
 
   // Cache folders
@@ -119,12 +133,12 @@ export class EmailCache {
       cachedAt: new Date().toISOString()
     }));
 
-    await emailDB.folders.bulkPut(cachedFolders);
+    await getEmailDB().folders.bulkPut(cachedFolders);
   }
 
   // Get cached folders
   static async getCachedFolders(): Promise<EmailFolder[]> {
-    const cached = await emailDB.folders.toArray();
+    const cached = await getEmailDB().folders.toArray();
     return cached.map(({ cachedAt, ...folder }) => folder);
   }
 
@@ -137,12 +151,12 @@ export class EmailCache {
       lastUid
     };
 
-    await emailDB.syncInfo.put(syncInfo);
+    await getEmailDB().syncInfo.put(syncInfo);
   }
 
   // Get sync info for incremental sync
   static async getSyncInfo(folder: string): Promise<SyncInfo | undefined> {
-    return await emailDB.syncInfo.get(`sync_${folder}`);
+    return await getEmailDB().syncInfo.get(`sync_${folder}`);
   }
 
   // Clear old cache (cleanup)
@@ -152,13 +166,13 @@ export class EmailCache {
     const cutoffISO = cutoffDate.toISOString();
 
     // Clear old emails
-    await emailDB.emails.where('cachedAt').below(cutoffISO).delete();
+    await getEmailDB().emails.where('cachedAt').below(cutoffISO).delete();
     
     // Clear old email bodies
-    await emailDB.emailBodies.where('cachedAt').below(cutoffISO).delete();
+    await getEmailDB().emailBodies.where('cachedAt').below(cutoffISO).delete();
     
     // Clear old folders
-    await emailDB.folders.where('cachedAt').below(cutoffISO).delete();
+    await getEmailDB().folders.where('cachedAt').below(cutoffISO).delete();
   }
 
   // Get cache statistics
@@ -170,12 +184,12 @@ export class EmailCache {
     newestEmail?: string;
   }> {
     const [totalEmails, totalBodies, totalFolders] = await Promise.all([
-      emailDB.emails.count(),
-      emailDB.emailBodies.count(),
-      emailDB.folders.count()
+      getEmailDB().emails.count(),
+      getEmailDB().emailBodies.count(),
+      getEmailDB().folders.count()
     ]);
 
-    const emailsByDate = await emailDB.emails.toCollection().sortBy('cachedAt');
+    const emailsByDate = await getEmailDB().emails.toCollection().sortBy('cachedAt');
     const oldestEmail = emailsByDate[0];
     const newestEmail = emailsByDate[emailsByDate.length - 1];
 
@@ -190,13 +204,13 @@ export class EmailCache {
 
   // Check if email exists in cache
   static async emailExists(emailId: string): Promise<boolean> {
-    const count = await emailDB.emails.where('id').equals(emailId).count();
+    const count = await getEmailDB().emails.where('id').equals(emailId).count();
     return count > 0;
   }
 
   // Get emails newer than a specific UID (for incremental sync)
   static async getEmailsNewerThan(folder: string, uid: number): Promise<EmailMessage[]> {
-    const cachedEmails = await emailDB.emails
+    const cachedEmails = await getEmailDB().emails
       .where('folder')
       .equals(folder)
       .and(email => email.uid > uid)
@@ -210,14 +224,14 @@ export class EmailCache {
 
   // Delete email from cache
   static async deleteEmail(emailId: string): Promise<void> {
-    await emailDB.transaction('rw', [emailDB.emails, emailDB.emailBodies], async () => {
-      await emailDB.emails.delete(emailId);
-      await emailDB.emailBodies.delete(emailId);
+    await getEmailDB().transaction('rw', [getEmailDB().emails, getEmailDB().emailBodies], async () => {
+      await getEmailDB().emails.delete(emailId);
+      await getEmailDB().emailBodies.delete(emailId);
     });
   }
 
   // Update email flags (read/unread, flagged, etc.)
   static async updateEmailFlags(emailId: string, updates: Partial<Pick<EmailMessage, 'isRead' | 'isFlagged' | 'isAnswered'>>): Promise<void> {
-    await emailDB.emails.update(emailId, updates);
+    await getEmailDB().emails.update(emailId, updates);
   }
 }

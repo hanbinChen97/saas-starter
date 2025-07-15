@@ -53,6 +53,11 @@ class EmailApiClient {
     const result = await response.json();
     
     if (!result.success) {
+      // Handle session expiration specifically
+      if (result.error && result.error.includes('session expired')) {
+        console.log('Session expired, clearing local session data');
+        this.logout(); // Clear local session data
+      }
       throw new Error(result.error || 'API request failed');
     }
     

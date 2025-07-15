@@ -11,7 +11,7 @@ import { Button } from '@/app/components/ui/button';
 import { EmailCompose } from '@/app/components/email/EmailCompose';
 import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
 import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
-import { Dialog, DialogContent, DialogTrigger } from '@/app/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/app/components/ui/dialog';
 
 export default function MailDetailPage() {
   const params = useParams();
@@ -207,6 +207,9 @@ export default function MailDetailPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogTitle className="sr-only">
+                  {composeReplyTo ? 'Reply to Email' : 'Compose New Email'}
+                </DialogTitle>
                 {emailCredentials && isAuthenticated ? (
                   <EmailCompose
                     smtpConfig={getSMTPConfig(emailCredentials.username, emailCredentials.emailAddress)}

@@ -14,6 +14,12 @@ export default function MailLoginPage() {
     if (result.success) {
       // Encode email address for URL: remove @ and . to create safe ID
       const emailId = credentials.emailAddress.split('@')[0].replace(/\./g, '');
+      
+      // Save the last email ID for future redirects
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('last_email_id', emailId);
+      }
+      
       router.push(`/dashboard/mail/${emailId}`);
     }
   };

@@ -215,6 +215,12 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
   // Load folders
   const loadFolders = useCallback(async () => {
+    // Don't load folders if not authenticated
+    if (!isAuthenticated) {
+      setFolders([]);
+      return;
+    }
+
     try {
       // Load from cache first
       const cachedFolders = await EmailCache.getCachedFolders();
@@ -230,7 +236,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       console.error('Error loading folders:', err);
       setError(err instanceof Error ? err.message : 'Failed to load folders');
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Get email body (with caching)
   const getEmailBody = useCallback(async (emailId: string, uid: number) => {

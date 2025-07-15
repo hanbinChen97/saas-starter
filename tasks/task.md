@@ -1,60 +1,205 @@
+/dashboard/emails?_rsc=1swjf:1  Failed to load resource: the server responded with a status of 404 ()
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Setting up auto-sync every 120 seconds
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+/api/emails:1  Failed to load resource: the server responded with a status of 500 ()
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:8665
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
 
-### 1. 路由结构
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
 
-- `app/(dashboard)/dashboard/mail/page.tsx`：只显示邮箱登录界面。
-- `app/(dashboard)/dashboard/mail/[id]/page.tsx`：显示邮件列表和详情，`[id]` 为邮箱地址。
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/css/26629250729b94f8.css?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/media/4c9affa5bc8f420e-s.p.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
 
-### 2. 登录流程
 
-- 用户在 `/dashboard/mail` 输入邮箱地址和密码，点击登录。
-- 登录成功后，自动跳转到 `/dashboard/mail/[email address]`。
-- 登录失败则提示错误信息。
+/dashboard/emails?_rsc=1swjf:1  Failed to load resource: the server responded with a status of 404 ()
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Setting up auto-sync every 120 seconds
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+/api/emails:1  Failed to load resource: the server responded with a status of 500 ()
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:8665
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
 
-### 3. 邮件列表与详情
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
 
-- `/dashboard/mail/[id]` 页面根据 URL 中的 `[id]`（即邮箱地址）加载对应邮箱的邮件列表。
-- 页面采用双栏布局，左侧为邮件列表，右侧为邮件详情。
-- 点击邮件时，仅更新右侧详情内容，不改变 URL。
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/css/26629250729b94f8.css?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/media/4c9affa5bc8f420e-s.p.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
 
-### 4. 参数获取
 
-- 在 `/dashboard/mail/[id]/page.tsx` 中，使用 `useParams` 获取 `[id]`，并据此加载邮箱数据。
-- 邮箱登录信息（如 token、session）建议存储在 context 或 sessionStorage，避免敏感信息泄露到 URL。
+/dashboard/emails?_rsc=1swjf:1  Failed to load resource: the server responded with a status of 404 ()
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Setting up auto-sync every 120 seconds
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+/api/emails:1  Failed to load resource: the server responded with a status of 500 ()
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:8665
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
 
-### 5. 状态管理
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
 
-- 邮箱登录状态、邮件列表、选中邮件等用 React context 或 useState 管理。
-- 如果用户未登录，直接访问 `/dashboard/mail/[id]` 时，自动重定向到 `/dashboard/mail` 登录页。
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/css/26629250729b94f8.css?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/media/4c9affa5bc8f420e-s.p.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Running scheduled sync for folder INBOX
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1  POST https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/api/emails 500 (Internal Server Error)
+makeRequest @ page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+getEmails @ page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+await in (anonymous)
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+await in (anonymous)
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
 
-### 6. 组件复用
 
-- 邮箱登录表单、邮件列表、邮件详情等组件可复用，无需大改。
+/dashboard/emails?_rsc=1swjf:1  Failed to load resource: the server responded with a status of 404 ()
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Setting up auto-sync every 120 seconds
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+/api/emails:1  Failed to load resource: the server responded with a status of 500 ()
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:8665
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
 
-### 7. 旧页面清理
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
 
-- 删除或废弃 `app/(dashboard)/dashboard/emails/page.tsx`，避免路由混乱。
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+el @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+yc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+ic @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+_o @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+(anonymous) @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+bc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+tc @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+k @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+I @ instrument.165c12ca9853d147a9ad.js?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB?dpl=dpl_6vr2xDCAjbprRXuGQMyrgGoHvjbB:2
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/css/26629250729b94f8.css?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+about:srcdoc:1 The resource https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/_next/static/media/4c9affa5bc8f420e-s.p.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [AutoSync] Running scheduled sync for folder INBOX
+page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 [Sync] Full sync for folder INBOX
+page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1  POST https://saas-starter-git-copilot-fix-5-2-hanbins-projects-ea9b9096.vercel.app/api/emails 500 (Internal Server Error)
+makeRequest @ page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+getEmails @ page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+await in (anonymous)
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1 Error syncing emails: Error: Email session expired. Please login again with your email credentials.
+    at a.makeRequest (page-b36ce549d927e2bf.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:661)
+    at async page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1:9811
+window.console.error @ 132-c535e22a9b2d0376.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
+await in (anonymous)
+(anonymous) @ page-0e23399313fd7e12.js?dpl=dpl_7tAMvnV6QiTDtAfUYfa5pdbAmiUj:1
 
----
 
-## 需要修改/新增的文件
+Problem: After user login, entering the email interface caused rendering errors 
+reason maybe: for new users who don't have localStorage/IndexedDB data.
 
-1. **新建/迁移页面**
-   - `app/(dashboard)/dashboard/mail/page.tsx`（邮箱登录页）
-   - `app/(dashboard)/dashboard/mail/[id]/page.tsx`（主页面，迁移原有邮件逻辑）
-
-2. **登录逻辑**
-   - 登录成功后跳转到 `/dashboard/mail/[email address]`
-
-3. **参数获取**
-   - 在 `[id]/page.tsx` 用 `useParams` 获取邮箱地址
-
-4. **未登录重定向**
-   - `/dashboard/mail/[id]` 页面如未登录，自动跳转到 `/dashboard/mail`
-
-5. **删除旧页面**
-   - 删除 `app/(dashboard)/dashboard/emails/page.tsx`（或重命名为备份）
-
-- 用邮箱地址作为 `[id]` 很直观，但要注意邮箱地址中包含特殊字符（如 @、.），建议在 URL 中做 encode/decode 处理。
-  -  那就取邮箱地址的@之前的部分，去除"." 作为 id。
-
-你觉得这个 plan 是否清晰？是否需要我帮你细化某一步或给出具体的编码建议？

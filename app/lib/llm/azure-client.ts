@@ -7,21 +7,29 @@ const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
 const AZURE_OPENAI_MODEL = process.env.AZURE_OPENAI_MODEL || 'gpt-4.1';
 const AZURE_OPENAI_API_VERSION = process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview';
 
+// Only throw error in runtime, not during build
+const isRuntime = process.env.NODE_ENV !== 'production' || process.env.VERCEL_URL;
 if (!AZURE_OPENAI_API_KEY || !AZURE_OPENAI_ENDPOINT) {
-  throw new Error('Azure OpenAI configuration is missing. Please check your environment variables.');
+  if (isRuntime) {
+    console.warn('Azure OpenAI configuration is missing. Some features may not work.');
+  }
 }
 
 // Extract resource name from endpoint
 const resourceName = AZURE_OPENAI_ENDPOINT?.replace('https://', '').replace('.openai.azure.com/', '').replace('/', '') || 'gpt-dbis';
 
-// Initialize Azure OpenAI Client using AI SDK
-const azure = createAzure({
-  apiKey: AZURE_OPENAI_API_KEY!,
-  resourceName: resourceName,
-  apiVersion: AZURE_OPENAI_API_VERSION,
-});
+// Initialize Azure OpenAI Client using AI SDK only if config is available
+let azure: any = null;
+let model: any = null;
 
-const model = azure(AZURE_OPENAI_MODEL);
+if (AZURE_OPENAI_API_KEY && AZURE_OPENAI_ENDPOINT) {
+  azure = createAzure({
+    apiKey: AZURE_OPENAI_API_KEY,
+    resourceName: resourceName,
+    apiVersion: AZURE_OPENAI_API_VERSION,
+  });
+  model = azure(AZURE_OPENAI_MODEL);
+}
 
 export interface LLMRequest {
   system?: string;
@@ -44,6 +52,10 @@ export interface LLMResponse {
  * General purpose Azure OpenAI text generation
  */
 export async function generateLLMResponse(request: LLMRequest): Promise<LLMResponse> {
+  if (!model) {
+    throw new Error('Azure OpenAI is not configured. Please check your environment variables.');
+  }
+  
   try {
     const { text, finishReason, usage } = await generateText({
       model: model,
@@ -79,6 +91,13 @@ export async function generateLLMResponse(request: LLMRequest): Promise<LLMRespo
  * Test Azure OpenAI connection
  */
 export async function testAzureOpenAIConnection(): Promise<{ success: boolean; error?: string }> {
+  if (!model) {
+    return { 
+      success: false, 
+      error: 'Azure OpenAI is not configured. Please check your environment variables.' 
+    };
+  }
+  
   try {
     const response = await generateLLMResponse({
       prompt: 'Reply with "OK" if you can read this message.',

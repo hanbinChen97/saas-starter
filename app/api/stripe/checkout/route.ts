@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/pricing', request.url));
   }
 
+  if (!stripe) {
+    console.error('Stripe is not configured');
+    return NextResponse.redirect(new URL('/error', request.url));
+  }
+
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['customer', 'subscription'],

@@ -6,6 +6,11 @@ import { hashPassword } from '@/app/lib/auth/session';
 async function createStripeProducts() {
   console.log('Creating Stripe products and prices...');
 
+  if (!stripe) {
+    console.log('Stripe is not configured, skipping product creation');
+    return;
+  }
+
   const baseProduct = await stripe.products.create({
     name: 'Base',
     description: 'Base subscription plan',

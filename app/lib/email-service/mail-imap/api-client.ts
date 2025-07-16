@@ -18,63 +18,39 @@ export interface AuthResult {
 }
 
 class EmailApiClient {
-  private credentials: EmailCredentials | null = null;
+  private hasStoredCredentials: boolean = false;
 
   constructor() {
-    // Load credentials from localStorage if available
-    this.loadCredentials();
+    // Check if we have stored credentials on the server
+    this.checkStoredCredentials();
   }
 
-  private loadCredentials(): void {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('email_credentials');
-      if (stored) {
-        try {
-          // Only load non-sensitive data
-          const parsed = JSON.parse(stored);
-          this.credentials = {
-            username: parsed.username,
-            password: '', // Never store password in localStorage
-            emailAddress: parsed.emailAddress,
-            host: parsed.host,
-            port: parsed.port,
-            encryption: parsed.encryption
-          };
-        } catch (error) {
-          console.error('Failed to parse stored credentials:', error);
-          localStorage.removeItem('email_credentials');
-        }
+  private async checkStoredCredentials(): Promise<void> {
+    try {
+      const response = await fetch('/api/auth/email-credentials', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.hasStoredCredentials = data.success && data.hasCredentials;
       }
-    }
-  }
-
-  private saveCredentials(credentials: EmailCredentials): void {
-    if (typeof window !== 'undefined') {
-      // Only save non-sensitive data
-      const toStore = {
-        username: credentials.username,
-        emailAddress: credentials.emailAddress,
-        host: credentials.host,
-        port: credentials.port,
-        encryption: credentials.encryption
-      };
-      localStorage.setItem('email_credentials', JSON.stringify(toStore));
+    } catch (error) {
+      console.error('Error checking stored credentials:', error);
+      this.hasStoredCredentials = false;
     }
   }
 
   private async makeRequest(action: string, params: any = {}) {
-    if (!this.credentials) {
-      throw new Error('Email credentials not set. Please authenticate first.');
-    }
-
     const requestBody = { 
       action, 
-      credentials: this.credentials,
       ...params 
     };
 
     const response = await fetch('/api/emails', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -91,68 +67,88 @@ class EmailApiClient {
   }
 
   async authenticate(credentials: EmailCredentials): Promise<AuthResult> {
-    // Store credentials for future requests (without password in localStorage)
-    this.credentials = { ...credentials };
-    this.saveCredentials(credentials);
+    try {
+      // Store credentials on server first (this validates them)
+      const storeResponse = await fetch('/api/auth/email-credentials', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-    // Test credentials
-    const response = await fetch('/api/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ action: 'authenticate', credentials }),
-    });
+      const storeResult = await storeResponse.json();
+      
+      if (!storeResponse.ok || !storeResult.success) {
+        return {
+          success: false,
+          error: storeResult.error || 'Failed to store credentials'
+        };
+      }
 
-    const result = await response.json();
-    return result;
-  }
-
-  isAuthenticated(): boolean {
-    return this.credentials !== null;
-  }
-
-  setPassword(password: string): void {
-    if (this.credentials) {
-      this.credentials.password = password;
-    }
-  }
-
-  getStoredCredentials(): Omit<EmailCredentials, 'password'> | null {
-    if (!this.credentials) return null;
-    
-    const { password, ...rest } = this.credentials;
-    return rest;
-  }
-
-  logout(): void {
-    this.credentials = null;
-    // Clear credentials from localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('email_credentials');
+      this.hasStoredCredentials = true;
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Authentication error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Authentication failed'
+      };
     }
   }
 
   async syncEmails(folder: string = 'INBOX', limit: number = 50, unreadOnly: boolean = false): Promise<EmailMessage[]> {
-    const result = await this.makeRequest('syncEmails', { folder, limit, unreadOnly });
-    return result.data || result;
+    return await this.makeRequest('syncEmails', { folder, limit, unreadOnly });
   }
 
-  async getEmailBody(folder: string, uid: number): Promise<{ text?: string; html?: string }> {
+  async getEmailBody(folder: string = 'INBOX', uid: number): Promise<{ text?: string; html?: string }> {
     const result = await this.makeRequest('getEmailBody', { folder, uid });
     return result.data || result;
   }
 
-  async markAsRead(folder: string, uid: number, isRead: boolean): Promise<void> {
+  async markAsRead(folder: string = 'INBOX', uid: number, isRead: boolean): Promise<void> {
     await this.makeRequest('markAsRead', { folder, uid, isRead });
   }
 
-  async markAsFlagged(folder: string, uid: number, isFlagged: boolean): Promise<void> {
+  async markAsFlagged(folder: string = 'INBOX', uid: number, isFlagged: boolean): Promise<void> {
     await this.makeRequest('markAsFlagged', { folder, uid, isFlagged });
   }
 
-  async deleteEmail(folder: string, uid: number): Promise<void> {
+  async deleteEmail(folder: string = 'INBOX', uid: number): Promise<void> {
     await this.makeRequest('deleteEmail', { folder, uid });
+  }
+
+  isAuthenticated(): boolean {
+    return this.hasStoredCredentials;
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await fetch('/api/auth/email-credentials', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      this.hasStoredCredentials = false;
+    }
+  }
+
+  // Legacy methods for backward compatibility
+  getStoredCredentials(): any {
+    // Since credentials are now stored server-side, we return null
+    // Components should use the new useEmailCredentials hook instead
+    return null;
+  }
+
+  setPassword(password: string): void {
+    // No-op since passwords are stored server-side now
+    console.warn('setPassword is deprecated. Use the new credential storage system.');
   }
 }
 

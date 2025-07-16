@@ -594,7 +594,6 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                 {email.bcc && email.bcc.length > 0 && (
                   <div><span className="font-medium">BCC:</span> {email.bcc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}</div>
                 )}
-                <div><span className="font-medium">Message-ID:</span> {email.messageId || 'N/A'}</div>
               </div>
             </details>
           </div>

@@ -16,7 +16,7 @@ import {
   ActivityType,
   invitations
 } from '@/app/lib/db/schema';
-import { comparePasswords, hashPassword, setSession } from '@/app/lib/auth/session';
+import { comparePasswords, hashPassword, setTokens } from '@/app/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createCheckoutSession } from '@/app/lib/payments/stripe';
@@ -87,7 +87,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
   }
 
   await Promise.all([
-    setSession(foundUser),
+    setTokens(foundUser),
     logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN)
   ]);
 
@@ -209,7 +209,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   await Promise.all([
     db.insert(teamMembers).values(newTeamMember),
     logActivity(teamId, createdUser.id, ActivityType.SIGN_UP),
-    setSession(createdUser)
+    setTokens(createdUser)
   ]);
 
   const redirectTo = formData.get('redirect') as string | null;
@@ -225,7 +225,10 @@ export async function signOut() {
   const user = (await getUser()) as User;
   const userWithTeam = await getUserWithTeam(user.id);
   await logActivity(userWithTeam?.teamId, user.id, ActivityType.SIGN_OUT);
-  (await cookies()).delete('session');
+  
+  // Use new token clearing method
+  const { clearTokens } = await import('@/app/lib/auth/session');
+  await clearTokens();
 }
 
 const updatePasswordSchema = z.object({
@@ -334,6 +337,11 @@ export const deleteAccount = validatedActionWithUser(
     }
 
     (await cookies()).delete('session');
+    
+    // Also clear new token system
+    const { clearTokens } = await import('@/app/lib/auth/session');
+    await clearTokens();
+    
     redirect('/sign-in');
   }
 );

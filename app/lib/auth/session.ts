@@ -3,14 +3,30 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NewUser } from '@/app/lib/db/schema';
 
+// Re-export everything from the new tokens module for backward compatibility
+export {
+  hashPassword,
+  comparePasswords,
+  setSession,
+  getSession,
+  verifyToken,
+  signToken,
+  setTokens,
+  clearTokens,
+  refreshAccessToken,
+  revokeAllUserRefreshTokens,
+  revokeRefreshToken,
+} from './tokens';
+
+// Keep the old implementation as a fallback
 const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 const SALT_ROUNDS = 10;
 
-export async function hashPassword(password: string) {
+export async function hashPasswordLegacy(password: string) {
   return hash(password, SALT_ROUNDS);
 }
 
-export async function comparePasswords(
+export async function comparePasswordsLegacy(
   plainTextPassword: string,
   hashedPassword: string
 ) {
@@ -22,7 +38,7 @@ type SessionData = {
   expires: string;
 };
 
-export async function signToken(payload: SessionData) {
+export async function signTokenLegacy(payload: SessionData) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -30,26 +46,26 @@ export async function signToken(payload: SessionData) {
     .sign(key);
 }
 
-export async function verifyToken(input: string) {
+export async function verifyTokenLegacy(input: string) {
   const { payload } = await jwtVerify(input, key, {
     algorithms: ['HS256'],
   });
   return payload as SessionData;
 }
 
-export async function getSession() {
+export async function getSessionLegacy() {
   const session = (await cookies()).get('session')?.value;
   if (!session) return null;
-  return await verifyToken(session);
+  return await verifyTokenLegacy(session);
 }
 
-export async function setSession(user: NewUser) {
+export async function setSessionLegacy(user: NewUser) {
   const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const session: SessionData = {
     user: { id: user.id! },
     expires: expiresInOneDay.toISOString(),
   };
-  const encryptedSession = await signToken(session);
+  const encryptedSession = await signTokenLegacy(session);
   (await cookies()).set('session', encryptedSession, {
     expires: expiresInOneDay,
     httpOnly: true,

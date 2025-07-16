@@ -2,38 +2,63 @@ import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users } from './schema';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/app/lib/auth/session';
+import { verifyToken, getSession } from '@/app/lib/auth/session';
 
 export async function getUser() {
-  const sessionCookie = (await cookies()).get('session');
+  const cookieStore = await cookies();
+  
+  // Try new token system first (access token)
+  const accessToken = cookieStore.get('access_token')?.value;
+  if (accessToken) {
+    const sessionData = await getSession();
+    if (sessionData && sessionData.user && typeof sessionData.user.id === 'number') {
+      const user = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (user.length > 0) {
+        return user[0];
+      }
+    }
+  }
+  
+  // Fallback to old session system for backward compatibility
+  const sessionCookie = cookieStore.get('session');
   if (!sessionCookie || !sessionCookie.value) {
     return null;
   }
 
-  const sessionData = await verifyToken(sessionCookie.value);
-  if (
-    !sessionData ||
-    !sessionData.user ||
-    typeof sessionData.user.id !== 'number'
-  ) {
+  try {
+    const sessionData = await verifyToken(sessionCookie.value);
+    if (
+      !sessionData ||
+      !sessionData.user ||
+      typeof sessionData.user.id !== 'number'
+    ) {
+      return null;
+    }
+
+    if (new Date(sessionData.expires) < new Date()) {
+      return null;
+    }
+
+    const user = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
+      .limit(1);
+
+    if (user.length === 0) {
+      return null;
+    }
+
+    return user[0];
+  } catch (error) {
+    console.error('Error verifying legacy session token:', error);
     return null;
   }
-
-  if (new Date(sessionData.expires) < new Date()) {
-    return null;
-  }
-
-  const user = await db
-    .select()
-    .from(users)
-    .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
-    .limit(1);
-
-  if (user.length === 0) {
-    return null;
-  }
-
-  return user[0];
 }
 
 export async function getTeamByStripeCustomerId(customerId: string) {

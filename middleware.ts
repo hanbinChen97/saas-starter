@@ -1,46 +1,53 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { signToken, verifyToken } from '@/app/lib/auth/session';
+import { verifyAccessToken, refreshAccessToken } from '@/app/lib/auth/tokens';
 
 const protectedRoutes = '/dashboard';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get('session');
   const isProtectedRoute = pathname.startsWith(protectedRoutes);
 
-  if (isProtectedRoute && !sessionCookie) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+  if (!isProtectedRoute) {
+    return NextResponse.next();
   }
 
-  let res = NextResponse.next();
+  const accessToken = request.cookies.get('access_token')?.value;
+  const refreshToken = request.cookies.get('refresh_token')?.value;
 
-  if (sessionCookie && request.method === 'GET') {
+  // If no access token, check if we have a refresh token
+  if (!accessToken) {
+    if (!refreshToken) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
+    
+    // Try to refresh the access token
+    const response = NextResponse.next();
+    
     try {
-      const parsed = await verifyToken(sessionCookie.value);
-      const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-      res.cookies.set({
-        name: 'session',
-        value: await signToken({
-          ...parsed,
-          expires: expiresInOneDay.toISOString()
-        }),
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        expires: expiresInOneDay
-      });
+      // We can't call our own API during middleware, so we'll handle this in the app
+      // Just redirect to sign-in for now if no access token
+      return NextResponse.redirect(new URL('/sign-in', request.url));
     } catch (error) {
-      console.error('Error updating session:', error);
-      res.cookies.delete('session');
-      if (isProtectedRoute) {
-        return NextResponse.redirect(new URL('/sign-in', request.url));
-      }
+      return NextResponse.redirect(new URL('/sign-in', request.url));
     }
   }
 
-  return res;
+  // Verify the access token
+  const tokenData = await verifyAccessToken(accessToken);
+  if (!tokenData) {
+    // Access token is invalid/expired, try to refresh
+    if (!refreshToken) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
+    
+    // For middleware, we can't refresh the token here directly
+    // The client will need to handle the refresh
+    return NextResponse.redirect(new URL('/sign-in', request.url));
+  }
+
+  // Token is valid, continue
+  return NextResponse.next();
 }
 
 export const config = {

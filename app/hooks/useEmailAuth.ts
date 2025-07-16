@@ -6,8 +6,11 @@ import { emailApi, EmailCredentials, AuthResult } from '@/app/lib/email-service/
 interface UseEmailAuthReturn {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
+  isValidating: boolean;
   authError: string | null;
+  credentials: Omit<EmailCredentials, 'password'> | null;
   authenticate: (credentials: EmailCredentials) => Promise<AuthResult>;
+  setPassword: (password: string) => void;
   logout: () => void;
 }
 
@@ -16,24 +19,31 @@ export function useEmailAuth(): UseEmailAuthReturn {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [credentials, setCredentials] = useState<Omit<EmailCredentials, 'password'> | null>(null);
 
-  const authenticate = useCallback(async (credentials: EmailCredentials): Promise<AuthResult> => {
+  const authenticate = useCallback(async (emailCredentials: EmailCredentials): Promise<AuthResult> => {
     setIsAuthenticating(true);
     setAuthError(null);
 
     try {
-      const result = await emailApi.authenticate(credentials);
+      console.log('[Auth] Authenticating user:', emailCredentials.username);
+      const result = await emailApi.authenticate(emailCredentials);
       
       if (result.success) {
         setIsAuthenticated(true);
+        setCredentials(emailApi.getStoredCredentials());
+        console.log('[Auth] Authentication successful');
       } else {
         setAuthError(result.error || 'Authentication failed');
+        console.log('[Auth] Authentication failed:', result.error);
       }
       
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
       setAuthError(errorMessage);
+      console.error('[Auth] Authentication error:', error);
       return {
         success: false,
         error: errorMessage
@@ -44,24 +54,48 @@ export function useEmailAuth(): UseEmailAuthReturn {
   }, []);
 
   const logout = useCallback(() => {
+    console.log('[Auth] Logging out user');
     emailApi.logout();
     setIsAuthenticated(false);
+    setCredentials(null);
     setAuthError(null);
+    setIsValidating(false);
   }, []);
 
   // Initialize authentication state on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsAuthenticated(emailApi.isAuthenticated());
+      console.log('[Auth] Initializing authentication state...');
+      
+      // Check if we have stored credentials (without password)
+      const storedCredentials = emailApi.getStoredCredentials();
+      const hasCredentials = emailApi.isAuthenticated();
+      
+      if (hasCredentials && storedCredentials) {
+        console.log('[Auth] Found stored credentials for:', storedCredentials.username);
+        setIsAuthenticated(true);
+        setCredentials(storedCredentials);
+      } else {
+        console.log('[Auth] No stored credentials found');
+        setIsAuthenticated(false);
+      }
+      
       setIsInitialized(true);
     }
+  }, []);
+
+  const setPassword = useCallback((password: string) => {
+    emailApi.setPassword(password);
   }, []);
 
   return {
     isAuthenticated,
     isAuthenticating,
+    isValidating,
     authError,
+    credentials,
     authenticate,
+    setPassword,
     logout
   };
 }

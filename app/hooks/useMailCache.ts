@@ -11,6 +11,7 @@ interface UseMailCacheOptions {
   autoSync?: boolean;
   syncInterval?: number; // in milliseconds
   isAuthenticated?: boolean;
+  progressiveLoading?: boolean; // 是否启用渐进式加载
 }
 
 interface UseMailCacheReturn {
@@ -18,6 +19,10 @@ interface UseMailCacheReturn {
   folders: EmailFolder[];
   loading: boolean;
   syncing: boolean;
+  backgroundLoading: boolean; // 后台加载状态
+  initialLoaded: boolean; // 首批邮件是否已加载
+  loadingProgress: string; // 加载进度描述
+  connectionError: boolean; // 连接错误状态
   error: string | null;
   hasMore: boolean;
   
@@ -29,6 +34,7 @@ interface UseMailCacheReturn {
   markAsRead: (emailId: string, uid: number, isRead: boolean) => Promise<void>;
   markAsFlagged: (emailId: string, uid: number, isFlagged: boolean) => Promise<void>;
   deleteEmail: (emailId: string, uid: number) => Promise<void>;
+  retryConnection: () => Promise<void>; // 重试连接
   
   // Cache utilities
   clearCache: () => Promise<void>;
@@ -45,23 +51,27 @@ interface UseMailCacheReturn {
 export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheReturn {
   const {
     folder = 'INBOX',
-    limit = 50,
+    limit = 200,
     autoSync = true,
     syncInterval = 2 * 60 * 1000, // 2 minutes
-    isAuthenticated = false
+    isAuthenticated = false,
+    progressiveLoading = true // 默认启用渐进式加载
   } = options;
 
   const [emails, setEmails] = useState<EmailMessage[]>([]);
   const [folders, setFolders] = useState<EmailFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState('初始化中...');
+  const [connectionError, setConnectionError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMoreEmails, setHasMoreEmails] = useState(true);
   const [currentLimit, setCurrentLimit] = useState(limit);
 
-  // Load emails from cache first, then sync with server
-  const loadEmails = useCallback(async (useCache = true) => {
-    // If not authenticated, stop loading and clear state
+  // 渐进式加载邮件：先加载20封快速显示，后台继续加载到目标数量
+  const progressiveLoadEmails = useCallback(async () => {
     if (!isAuthenticated) {
       setLoading(false);
       setError(null);
@@ -71,29 +81,142 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
     try {
       setError(null);
+      setConnectionError(false);
+      setLoading(true);
+      setLoadingProgress('检查缓存中...');
+
+      // Step 1: 检查缓存，如果有足够邮件就快速显示
+      const cachedEmails = await EmailCache.getCachedEmails(folder, limit);
+      if (cachedEmails.length >= 20) {
+        setEmails(cachedEmails);
+        setInitialLoaded(true);
+        setLoading(false);
+        setLoadingProgress('显示缓存邮件');
+        console.log(`[Progressive] 显示 ${cachedEmails.length} 封缓存邮件`);
+        
+        // 后台智能同步检查更新
+        setTimeout(async () => {
+          try {
+            await smartSync();
+          } catch (err) {
+            console.error('[Progressive] 后台同步失败:', err);
+          }
+        }, 1000);
+        return;
+      }
+
+      // Step 2: 快速加载前20封邮件
+      setLoadingProgress('快速加载前20封邮件...');
+      console.log('[Progressive] 快速加载前20封邮件');
+      
+      const initialEmails = await emailApi.syncEmails(folder, 20);
+      if (initialEmails.length > 0) {
+        setEmails(initialEmails);
+        setInitialLoaded(true);
+        setLoading(false);
+        await EmailCache.cacheEmails(initialEmails, folder);
+        console.log(`[Progressive] 快速显示 ${initialEmails.length} 封邮件`);
+      }
+
+      // Step 3: 后台继续加载到目标数量
+      if (limit > 20) {
+        setBackgroundLoading(true);
+        setLoadingProgress(`后台加载更多邮件 (目标 ${limit} 封)...`);
+        console.log(`[Progressive] 后台加载至 ${limit} 封邮件`);
+        
+        setTimeout(async () => {
+          try {
+            const fullEmails = await emailApi.syncEmails(folder, limit);
+            if (fullEmails.length > initialEmails.length) {
+              setEmails(fullEmails);
+              await EmailCache.cacheEmails(fullEmails, folder);
+              setHasMoreEmails(fullEmails.length >= limit);
+              console.log(`[Progressive] 后台加载完成：${fullEmails.length} 封邮件`);
+            }
+          } catch (err) {
+            console.error('[Progressive] 后台加载失败:', err);
+            // 后台加载失败不影响已显示的邮件
+          } finally {
+            setBackgroundLoading(false);
+            setLoadingProgress('加载完成');
+          }
+        }, 500); // 500ms后开始后台加载
+      }
+
+    } catch (err) {
+      console.error('[Progressive] 加载失败:', err);
+      setError(err instanceof Error ? err.message : '邮件加载失败');
+      setLoading(false);
+      setBackgroundLoading(false);
+      
+      // 检查是否为连接错误
+      if (err instanceof Error && (
+        err.message.includes('connection') || 
+        err.message.includes('timeout') || 
+        err.message.includes('IMAP') ||
+        err.message.includes('session expired') ||
+        err.message.includes('Authentication') ||
+        err.message.includes('login')
+      )) {
+        setConnectionError(true);
+        setLoadingProgress('连接已断开，请重新登录');
+      }
+    }
+  }, [folder, limit, isAuthenticated]);
+
+  // 重试连接
+  const retryConnection = useCallback(async () => {
+    console.log('[Connection] 重试连接');
+    setConnectionError(false);
+    setError(null);
+    await progressiveLoadEmails();
+  }, [progressiveLoadEmails]);
+
+  // 修改原有的loadEmails函数
+  const loadEmails = useCallback(async (useCache = true) => {
+    if (progressiveLoading) {
+      return progressiveLoadEmails();
+    }
+    
+    // 原有的加载逻辑保持不变（作为备选方案）
+    if (!isAuthenticated) {
+      setLoading(false);
+      setError(null);
+      setEmails([]);
+      return;
+    }
+
+    try {
+      setError(null);
+      setLoading(true);
+      
+      let hasCache = false;
       
       if (useCache) {
-        // Load from cache first for instant display
         const cachedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
         if (cachedEmails.length > 0) {
           setEmails(cachedEmails);
-          setLoading(false);
+          hasCache = true;
+          console.log(`[LoadEmails] Loaded ${cachedEmails.length} emails from cache`);
         }
       }
 
-      // Then sync with server in background (only if authenticated)
-      if (autoSync && isAuthenticated) {
+      if (isAuthenticated) {
+        console.log(`[LoadEmails] Starting server sync (hasCache: ${hasCache})`);
         await syncEmails();
+        console.log(`[LoadEmails] Server sync completed`);
       }
+      
+      setLoading(false);
+      
     } catch (err) {
       console.error('Error loading emails:', err);
       setError(err instanceof Error ? err.message : 'Failed to load emails');
-    } finally {
       setLoading(false);
     }
-  }, [folder, currentLimit, autoSync, isAuthenticated]);
+  }, [folder, currentLimit, autoSync, isAuthenticated, progressiveLoading, progressiveLoadEmails]);
 
-  // Sync emails with server
+  // Sync emails with server (simplified one-time sync)
   const syncEmails = useCallback(async () => {
     // Don't sync if not authenticated
     if (!isAuthenticated) {
@@ -105,79 +228,36 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       setSyncing(true);
       setError(null);
 
-      // Get sync info for incremental sync
-      const syncInfo = await EmailCache.getSyncInfo(folder);
-      let newEmails: EmailMessage[] = [];
-
-      if (syncInfo) {
-        // Incremental sync: only get emails newer than last sync
-        console.log(`[Sync] Incremental sync from UID ${syncInfo.lastUid} for folder ${folder}`);
-        console.log(`[Sync] Last sync time: ${syncInfo.lastSyncTime}`);
-        try {
-          newEmails = await emailApi.getEmailsNewerThan(folder, syncInfo.lastUid);
-          console.log(`[Sync] Found ${newEmails.length} new emails`);
-        } catch (actionError) {
-          console.error('[Sync] API error, falling back to full sync:', actionError);
-          newEmails = await emailApi.getEmails(folder, currentLimit);
-          console.log(`[Sync] Fallback: Retrieved ${newEmails.length} emails`);
-        }
-        
-        // If no new emails found, let's also try a different approach
-        if (newEmails.length === 0) {
-          console.log(`[Sync] No new emails with UID approach, trying recent emails check`);
-          try {
-            // Get a few recent emails to compare
-            const recentEmails = await emailApi.getEmails(folder, 10);
-            
-            // Check if any of these emails are not in our cache
-            const uncachedEmails = [];
-            for (const email of recentEmails) {
-              const exists = await EmailCache.emailExists(email.id);
-              if (!exists) {
-                uncachedEmails.push(email);
-              }
-            }
-            
-            if (uncachedEmails.length > 0) {
-              console.log(`[Sync] Found ${uncachedEmails.length} uncached emails`);
-              newEmails = uncachedEmails;
-            }
-          } catch (fallbackError) {
-            console.error('[Sync] Fallback approach also failed:', fallbackError);
-          }
-        }
-      } else {
-        // Full sync: get all emails
-        console.log(`[Sync] Full sync for folder ${folder}`);
-        newEmails = await emailApi.getEmails(folder, currentLimit);
-        console.log(`[Sync] Retrieved ${newEmails.length} emails`);
-      }
+      console.log(`[Sync] One-time sync for folder ${folder}, limit ${currentLimit}`);
+      
+      // Use the simplified sync API (connect, fetch, disconnect)
+      const newEmails = await emailApi.syncEmails(folder, currentLimit);
+      console.log(`[Sync] Retrieved ${newEmails.length} emails`);
 
       if (newEmails.length > 0) {
-        // Cache new emails
+        // Cache the emails
         await EmailCache.cacheEmails(newEmails, folder);
         
-        // Update sync info with highest UID
+        // Update sync info with highest UID for future reference
         const highestUid = Math.max(...newEmails.map(email => email.uid));
         await EmailCache.updateSyncInfo(folder, highestUid);
         console.log(`[Sync] Updated sync info with UID ${highestUid}`);
 
-        // Reload emails from cache to get updated list (sorted by date)
-        const updatedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
-        setEmails(updatedEmails);
-        console.log(`[Sync] Updated email list with ${updatedEmails.length} total emails`);
+        // Update local state with the synced emails
+        setEmails(newEmails);
+        console.log(`[Sync] Updated email list with ${newEmails.length} emails`);
         
-        // Update hasMoreEmails flag based on whether we got the full limit
-        setHasMoreEmails(updatedEmails.length >= currentLimit);
+        // Update hasMoreEmails flag
+        setHasMoreEmails(newEmails.length >= currentLimit);
       } else {
-        console.log(`[Sync] No new emails found after all checks`);
-        // Even if no new emails, we might need to update hasMoreEmails
-        const cachedEmails = await EmailCache.getCachedEmails(folder, currentLimit);
-        setHasMoreEmails(cachedEmails.length >= currentLimit);
+        console.log(`[Sync] No emails retrieved`);
+        setEmails([]);
+        setHasMoreEmails(false);
       }
     } catch (err) {
       console.error('Error syncing emails:', err);
       setError(err instanceof Error ? err.message : 'Failed to sync emails');
+      throw err; // Re-throw so loadEmails can catch it
     } finally {
       setSyncing(false);
     }
@@ -189,16 +269,16 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
 
     try {
       setLoading(true);
-      const newLimit = currentLimit + limit;
+      const newLimit = currentLimit + 50; // 每次加载更多50封
       setCurrentLimit(newLimit);
 
       // Try to load from cache first
       const cachedEmails = await EmailCache.getCachedEmails(folder, newLimit);
       setEmails(cachedEmails);
 
-      // If we don't have enough cached emails, fetch from server
+      // If we don't have enough cached emails, sync from server
       if (cachedEmails.length < newLimit) {
-        const serverEmails = await emailApi.getEmails(folder, newLimit);
+        const serverEmails = await emailApi.syncEmails(folder, newLimit);
         await EmailCache.cacheEmails(serverEmails, folder);
         
         const updatedEmails = await EmailCache.getCachedEmails(folder, newLimit);
@@ -211,32 +291,16 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     } finally {
       setLoading(false);
     }
-  }, [folder, currentLimit, limit, hasMoreEmails, loading, syncing]);
+  }, [folder, currentLimit, hasMoreEmails, loading, syncing, isAuthenticated]);
 
-  // Load folders
+  // Load folders (simplified - only support INBOX for now)
   const loadFolders = useCallback(async () => {
-    // Don't load folders if not authenticated
-    if (!isAuthenticated) {
-      setFolders([]);
-      return;
-    }
-
-    try {
-      // Load from cache first
-      const cachedFolders = await EmailCache.getCachedFolders();
-      if (cachedFolders.length > 0) {
-        setFolders(cachedFolders);
-      }
-
-      // Sync with server
-      const serverFolders = await emailApi.getFolders();
-      await EmailCache.cacheFolders(serverFolders);
-      setFolders(serverFolders);
-    } catch (err) {
-      console.error('Error loading folders:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load folders');
-    }
-  }, [isAuthenticated]);
+    // In simplified mode, we only support INBOX
+    const defaultFolders = [
+      { name: 'INBOX', path: 'INBOX', delimiter: '/', attributes: [], flags: [] }
+    ];
+    setFolders(defaultFolders);
+  }, []);
 
   // Get email body (with caching)
   const getEmailBody = useCallback(async (emailId: string, uid: number) => {
@@ -318,10 +382,10 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     try {
       setLoading(true);
       setError(null);
-      setCurrentLimit(limit);
+      setCurrentLimit(20); // 重置为20封邮件
       
       // Force a full reload from server (no cache, no incremental)
-      const freshEmails = await emailApi.getEmails(folder, limit);
+      const freshEmails = await emailApi.syncEmails(folder, 20);
       
       if (freshEmails.length > 0) {
         // Clear old emails from cache for this folder first
@@ -336,7 +400,8 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
         
         // Update state with fresh emails
         setEmails(freshEmails);
-        setHasMoreEmails(freshEmails.length === limit);
+        setHasMoreEmails(freshEmails.length === 20);
+        setInitialLoaded(true);
       } else {
         // If no emails returned, clear the local state
         setEmails([]);
@@ -348,7 +413,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     } finally {
       setLoading(false);
     }
-  }, [folder, limit]);
+  }, [folder]);
 
   // Clear cache
   const clearCache = useCallback(async () => {
@@ -378,10 +443,10 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       // Get the 20 most recent emails from server
       let recentServerEmails: EmailMessage[] = [];
       try {
-        recentServerEmails = await emailApi.getEmails(folder, 20);
+        recentServerEmails = await emailApi.syncEmails(folder, 20);
         console.log(`[SmartSync] Retrieved ${recentServerEmails.length} recent emails from server`);
       } catch (actionError) {
-        console.error('[SmartSync] Server Action error:', actionError);
+        console.error('[SmartSync] Server sync error:', actionError);
         throw actionError;
       }
       
@@ -425,7 +490,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
   useEffect(() => {
     // Only load emails and folders if authenticated
     if (isAuthenticated) {
-      loadEmails();
+      loadEmails(); // This now handles both cache loading and server sync
       loadFolders();
     } else {
       // Clear state when not authenticated
@@ -434,13 +499,14 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
       setLoading(false);
     }
 
-    // Setup auto-sync interval
+    // Setup auto-sync interval for periodic updates (not initial load)
     let syncIntervalId: NodeJS.Timeout | null = null;
     if (autoSync && syncInterval > 0 && isAuthenticated) {
       console.log(`[AutoSync] Setting up auto-sync every ${syncInterval / 1000} seconds`);
       syncIntervalId = setInterval(() => {
         console.log(`[AutoSync] Running scheduled sync for folder ${folder}`);
-        syncEmails();
+        // Use smartSync for periodic updates to avoid replacing cache unnecessarily
+        smartSync();
       }, syncInterval);
     }
 
@@ -469,6 +535,10 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     folders,
     loading,
     syncing,
+    backgroundLoading,
+    initialLoaded,
+    loadingProgress,
+    connectionError,
     error,
     hasMore: hasMoreEmails,
     refreshEmails,
@@ -478,6 +548,7 @@ export function useMailCache(options: UseMailCacheOptions = {}): UseMailCacheRet
     markAsRead,
     markAsFlagged,
     deleteEmail,
+    retryConnection,
     clearCache,
     getCacheStats,
     smartSync

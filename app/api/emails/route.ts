@@ -1,89 +1,103 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createEmailService, ImapEmailService } from '@/app/lib/email-service/mail-imap/email-service';
-import { getEmailService as getSessionEmailService, authenticateEmail } from '@/app/lib/email-service/mail-imap/email-auth';
-
-// Removed global service variables to enforce session-based authentication
-
-async function getEmailService(sessionId?: string): Promise<ImapEmailService> {
-  // Always require session-based authentication for security
-  if (!sessionId) {
-    throw new Error('Email authentication required. Please login with your email credentials.');
-  }
-
-  const sessionService = await getSessionEmailService(sessionId);
-  if (sessionService) {
-    return sessionService;
-  }
-
-  // Session invalid or expired - require user to login again
-  throw new Error('Email session expired. Please login again with your email credentials.');
-}
+import { 
+  authenticateAndSyncEmails, 
+  executeEmailOperation, 
+  validateEmailCredentials,
+  EmailAuthCredentials 
+} from '@/app/lib/email-service/mail-imap/email-auth';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, folder = 'INBOX', limit = 50, uid, sessionId, credentials } = body;
+    const { action, folder = 'INBOX', limit = 50, uid, credentials } = body;
 
-    // Handle authentication action
-    if (action === 'authenticate') {
-      if (!credentials) {
-        return NextResponse.json({ success: false, error: 'Credentials required' }, { status: 400 });
-      }
-      const result = await authenticateEmail(credentials);
-      return NextResponse.json(result);
+    // Validate credentials for all operations
+    if (!credentials) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Email credentials required for all operations' 
+      }, { status: 400 });
     }
 
-    const service = await getEmailService(sessionId);
+    // Validate credentials format
+    if (!credentials.username || !credentials.password || !credentials.host) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Username, password, and host are required' 
+      }, { status: 400 });
+    }
+
+    const emailCredentials: EmailAuthCredentials = {
+      username: credentials.username,
+      password: credentials.password,
+      host: credentials.host,
+      port: credentials.port || 993,
+      encryption: credentials.encryption || 'SSL'
+    };
 
     switch (action) {
-      case 'getEmails':
-        const emails = await service.fetchEmails({ folder, limit });
-        return NextResponse.json({ success: true, data: emails });
+      case 'authenticate':
+        // Test credentials only (no email sync)
+        console.log('[API] Validating credentials for:', emailCredentials.username);
+        const authResult = await validateEmailCredentials(emailCredentials);
+        return NextResponse.json(authResult);
 
-      case 'getEmailsNewerThan':
-        if (!uid) {
-          return NextResponse.json({ success: false, error: 'UID required' }, { status: 400 });
-        }
-        const newerEmails = await service.fetchEmailsNewerThan(folder, uid);
-        return NextResponse.json({ success: true, data: newerEmails });
-
-      case 'getFolders':
-        const folders = await service.listFolders();
-        return NextResponse.json({ success: true, data: folders });
+      case 'syncEmails':
+        // One-time sync: connect, fetch emails, disconnect
+        console.log('[API] Syncing emails for:', emailCredentials.username);
+        const syncOptions = {
+          folder,
+          limit,
+          unreadOnly: body.unreadOnly || false
+        };
+        const syncResult = await authenticateAndSyncEmails(emailCredentials, syncOptions);
+        return NextResponse.json({
+          success: syncResult.success,
+          data: syncResult.emails,
+          error: syncResult.error
+        });
 
       case 'getEmailBody':
         if (!uid) {
           return NextResponse.json({ success: false, error: 'UID required' }, { status: 400 });
         }
-        const emailBody = await service.fetchEmailBody(folder, uid);
-        return NextResponse.json({ success: true, data: emailBody });
+        console.log('[API] Fetching email body for UID:', uid);
+        const bodyResult = await executeEmailOperation(emailCredentials, 'fetchEmailBody', { folder, uid });
+        return NextResponse.json(bodyResult);
 
       case 'markAsRead':
         if (!uid || typeof body.isRead !== 'boolean') {
           return NextResponse.json({ success: false, error: 'UID and isRead required' }, { status: 400 });
         }
-        await service.markAsReadInFolder(folder, uid, body.isRead);
-        return NextResponse.json({ success: true });
+        console.log('[API] Marking email as read:', uid, body.isRead);
+        const readResult = await executeEmailOperation(emailCredentials, 'markAsRead', { 
+          folder, uid, isRead: body.isRead 
+        });
+        return NextResponse.json(readResult);
 
       case 'markAsFlagged':
         if (!uid || typeof body.isFlagged !== 'boolean') {
           return NextResponse.json({ success: false, error: 'UID and isFlagged required' }, { status: 400 });
         }
-        await service.markAsFlagged(folder, uid, body.isFlagged);
-        return NextResponse.json({ success: true });
+        console.log('[API] Marking email as flagged:', uid, body.isFlagged);
+        const flagResult = await executeEmailOperation(emailCredentials, 'markAsFlagged', { 
+          folder, uid, isFlagged: body.isFlagged 
+        });
+        return NextResponse.json(flagResult);
 
       case 'deleteEmail':
         if (!uid) {
           return NextResponse.json({ success: false, error: 'UID required' }, { status: 400 });
         }
-        await service.deleteEmailInFolder(folder, uid);
-        return NextResponse.json({ success: true });
+        console.log('[API] Deleting email:', uid);
+        const deleteResult = await executeEmailOperation(emailCredentials, 'deleteEmail', { folder, uid });
+        return NextResponse.json(deleteResult);
 
       default:
         return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Email API error:', error);
+    console.error('[API] Email operation error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

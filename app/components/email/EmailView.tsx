@@ -129,100 +129,98 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
   };
 
   const handleSendWithUserCredentials = async () => {
-    if (!tempPassword.trim()) {
-      setReplyStatus({ type: 'error', message: 'Please enter your password' });
+    if (!email || !replyText.trim() || !userCredentials || !tempPassword.trim()) {
+      setReplyStatus({ type: 'error', message: 'Missing required information' });
       return;
     }
 
     setSendingReply(true);
     setReplyStatus(null);
-    setNeedPassword(false);
 
     try {
-      const smtpAuthConfig: SMTPAuthRequest = {
-        username: userCredentials!.username,
+      const smtpConfig: SMTPAuthRequest = {
+        username: userCredentials.username,
         password: tempPassword,
         host: 'mail.rwth-aachen.de',
         port: 587,
         secure: false,
-        senderEmail: userCredentials!.emailAddress,
+        senderEmail: userCredentials.emailAddress,
       };
 
-      const replySubject = email!.subject.startsWith('Re:') ? email!.subject : `Re: ${email!.subject}`;
-      
       const emailOptions: SMTPSendOptions = {
         password: tempPassword,
-        to: [email!.from.address],
-        subject: replySubject,
-        text: replyText.trim(),
+        to: [email.from.address],
+        subject: `Re: ${email.subject}`,
+        text: replyText,
       };
 
-      const result = await sendEmailAction(smtpAuthConfig, emailOptions);
-      
+      const result = await sendEmailAction(smtpConfig, emailOptions);
+
       if (result.success) {
         setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
-        setReplyText('');
-        setShowReply(false);
         setTempPassword('');
-        onReplyToggle?.(false);
-        resetReplyState();
-        onUpdate?.();
+        setNeedPassword(false);
+        // Auto-close reply after successful send
+        setTimeout(() => {
+          setShowReply(false);
+          setReplyStatus(null);
+          onReplyToggle?.(false);
+        }, 2000);
       } else {
         setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
       }
     } catch (error) {
-      console.error('Error sending reply:', error);
-      setReplyStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
+      console.error('Error sending reply with user credentials:', error);
+      setReplyStatus({ type: 'error', message: 'Failed to send reply' });
     } finally {
       setSendingReply(false);
     }
   };
 
-  const handleSendWithCredentials = async () => {
-    if (!authCredentials.username || !authCredentials.password || !authCredentials.senderEmail) {
-      setReplyStatus({ type: 'error', message: 'Please enter login username, password, and your real email address' });
+  const handleSendWithAuth = async () => {
+    if (!email || !replyText.trim() || !authCredentials.username || !authCredentials.password || !authCredentials.senderEmail) {
+      setReplyStatus({ type: 'error', message: 'Please fill in all required fields' });
       return;
     }
 
     setSendingReply(true);
     setReplyStatus(null);
-    setShowAuthForm(false);
 
     try {
-      const smtpAuthConfig: SMTPAuthRequest = {
+      const smtpConfig: SMTPAuthRequest = {
         username: authCredentials.username,
         password: authCredentials.password,
         host: 'mail.rwth-aachen.de',
         port: 587,
-        secure: false, // Use STARTTLS for port 587
-        senderEmail: authCredentials.senderEmail.trim() || undefined,
+        secure: false,
+        senderEmail: authCredentials.senderEmail,
       };
 
-      const replySubject = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`;
-      
       const emailOptions: SMTPSendOptions = {
         password: authCredentials.password,
         to: [email.from.address],
-        subject: replySubject,
-        text: replyText.trim(),
+        subject: `Re: ${email.subject}`,
+        text: replyText,
       };
 
-      const result = await sendEmailAction(smtpAuthConfig, emailOptions);
-      
+      const result = await sendEmailAction(smtpConfig, emailOptions);
+
       if (result.success) {
         setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
-        setReplyText('');
-        setShowReply(false);
         setAuthCredentials({ username: '', password: '', senderEmail: '' });
-        onReplyToggle?.(false);
-        resetReplyState();
-        onUpdate?.();
+        setShowAuthForm(false);
+        // Auto-close reply after successful send
+        setTimeout(() => {
+          setShowReply(false);
+          setReplyStatus(null);
+          onReplyToggle?.(false);
+        }, 2000);
       } else {
         setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
       }
     } catch (error) {
-      console.error('Error sending reply:', error);
-      setReplyStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
+      console.error('Error sending reply with auth:', error);
+      setReplyStatus({ type: 'error', message: 'Failed to send reply' });
     } finally {
       setSendingReply(false);
     }
@@ -281,7 +279,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
   };
 
   return (
-    <div className="flex flex-col bg-white min-h-full">
+    <div className="h-full w-full flex flex-col bg-white overflow-hidden">
       {/* Title */}
       <div className="border-b border-gray-200 p-4 flex-shrink-0">
         <div className="flex items-start justify-between">
@@ -297,11 +295,11 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                 </svg>
               </button>
             )}
-            <h1 className="text-lg font-medium text-gray-900">
+            <h1 className="text-lg font-medium text-gray-900 line-clamp-2">
               {email.subject}
             </h1>
           </div>
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2 ml-4 flex-shrink-0">
             {!email.isRead && (
               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
                 Unread
@@ -334,141 +332,140 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
 
       {/* Reply Interface */}
       {showReply && (
-        <div className="border-b border-gray-200 p-3 flex-shrink-0 min-h-[400px]">
-          <div className="flex gap-4 h-96">
-            {/* Reply Box - Left Half */}
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Reply</h3>
-              <div className="border border-gray-300 rounded-lg flex-1 flex flex-col min-h-0">
-                {/* Reply Header */}
-                <div className="border-b border-gray-200 p-2 bg-gray-50 flex-shrink-0">
-                  <div className="flex justify-between items-start">
-                    <div className="text-sm text-gray-700">
-                      <div className="mb-1">
-                        <span className="font-medium text-xs">To:</span> <span className="text-xs">{email.from.name || email.from.address}</span>
+        <div className="border-b border-gray-200 flex-shrink-0" style={{ height: '400px' }}>
+          <div className="p-3 h-full">
+            <div className="flex gap-4 h-full">
+              {/* Reply Box - Left Half */}
+              <div className="flex-1 flex flex-col h-full">
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Reply</h3>
+                <div className="border border-gray-300 rounded-lg flex-1 flex flex-col min-h-0">
+                  {/* Reply Header */}
+                  <div className="border-b border-gray-200 p-2 bg-gray-50 flex-shrink-0">
+                    <div className="flex justify-between items-start">
+                      <div className="text-sm text-gray-700">
+                        <div className="mb-1">
+                          <span className="font-medium text-xs">To:</span> <span className="text-xs">{email.from.name || email.from.address}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-xs">Subject:</span> <span className="text-xs">Re: {email.subject}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium text-xs">Subject:</span> <span className="text-xs">Re: {email.subject}</span>
-                      </div>
+                      
+                      {/* AI Generate Button */}
+                      <button
+                        onClick={generateReply}
+                        disabled={isGeneratingReply}
+                        className="px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        {isGeneratingReply ? (
+                          <>
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            ✨ AI Draft
+                          </>
+                        )}
+                      </button>
                     </div>
                     
-                    {/* AI Generate Button */}
-                    <button
-                      onClick={generateReply}
-                      disabled={isGeneratingReply}
-                      className="px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      {isGeneratingReply ? (
-                        <>
-                          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          ✨ AI Draft
-                        </>
-                      )}
-                    </button>
+                    {/* AI Error Display */}
+                    {aiReplyError && (
+                      <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                        {aiReplyError}
+                        <button
+                          onClick={clearError}
+                          className="ml-2 text-red-800 hover:text-red-900"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Reply Status Display */}
+                    {replyStatus && (
+                      <div className={`mt-2 text-xs p-2 rounded ${
+                        replyStatus.type === 'success' 
+                          ? 'text-green-600 bg-green-50' 
+                          : 'text-red-600 bg-red-50'
+                      }`}>
+                        {replyStatus.message}
+                        <button
+                          onClick={() => setReplyStatus(null)}
+                          className={`ml-2 ${
+                            replyStatus.type === 'success' 
+                              ? 'text-green-800 hover:text-green-900' 
+                              : 'text-red-800 hover:text-red-900'
+                          }`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* AI Error Display */}
-                  {aiReplyError && (
-                    <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                      {aiReplyError}
-                      <button
-                        onClick={clearError}
-                        className="ml-2 text-red-800 hover:text-red-900"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Reply Status Display */}
-                  {replyStatus && (
-                    <div className={`mt-2 text-xs p-2 rounded ${
-                      replyStatus.type === 'success' 
-                        ? 'text-green-600 bg-green-50' 
-                        : 'text-red-600 bg-red-50'
-                    }`}>
-                      {replyStatus.message}
-                      <button
-                        onClick={() => setReplyStatus(null)}
-                        className={`ml-2 ${
-                          replyStatus.type === 'success' 
-                            ? 'text-green-800 hover:text-green-900' 
-                            : 'text-red-800 hover:text-red-900'
-                        }`}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Reply Content */}
-                <div className="flex-1 p-3 min-h-0">
-                  <textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type your reply here..."
-                    className="w-full h-full resize-none border-none outline-none text-xs"
-                  />
-                </div>
-                
-                {/* AI Modification Options */}
-                {modifications.length > 0 && (
-                  <div className="border-t border-gray-200 p-2 bg-gray-50 flex-shrink-0">
-                    <div className="text-xs text-gray-600 mb-1">AI Suggestions:</div>
-                    
-                    {/* Language Options Row */}
-                    <div className="mb-1">
-                      <div className="flex gap-1">
-                        {modifications.filter(mod => mod.type === 'language').map((mod) => (
-                          <button
-                            key={mod.id}
-                            onClick={() => {
-                              applyModification(mod);
-                              setReplyText(mod.replacement);
-                            }}
-                            className="px-2 py-0.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 flex items-center gap-1"
-                            title={mod.description}
-                          >
-                            <span className="text-gray-600">🌐</span>
-                            {mod.title}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tone/Style Options Row */}
-                    <div>
+                  {/* Reply Content */}
+                  <div className="flex-1 p-3 min-h-0">
+                    <textarea
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Type your reply here..."
+                      className="w-full h-full resize-none border-none outline-none text-xs"
+                    />
+                  </div>
+                  
+                  {/* AI Modification Options */}
+                  {modifications.length > 0 && (
+                    <div className="border-t border-gray-200 p-2 flex-shrink-0">
+                      <div className="text-xs text-gray-600 mb-1">AI Suggestions:</div>
                       <div className="flex flex-wrap gap-1">
-                        {modifications.filter(mod => mod.type !== 'language').map((mod) => (
+                        {modifications.map((mod, index) => (
                           <button
-                            key={mod.id}
-                            onClick={() => {
-                              applyModification(mod);
-                              setReplyText(mod.replacement);
-                            }}
-                            className="px-2 py-0.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 flex items-center gap-1"
-                            title={mod.description}
+                            key={index}
+                            onClick={() => applyModification(mod)}
+                            className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded hover:bg-purple-200 transition-colors"
                           >
-                            <span className="text-gray-600">
-                              {mod.type === 'tone' && '💬'}
-                              {mod.type === 'length' && '📏'}
-                              {mod.type === 'formality' && '👔'}
-                              {mod.type === 'custom' && '⚙️'}
-                            </span>
-                            {mod.title}
+                            {mod.type}: {mod.description}
                           </button>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Send/Cancel Buttons */}
+                  <div className="border-t border-gray-200 p-2 flex justify-end items-center flex-shrink-0">
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleSendReply}
+                        disabled={sendingReply || !replyText.trim()}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        {sendingReply ? (
+                          <>
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          'Send'
+                        )}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowReply(false);
+                          setReplyStatus(null);
+                          onReplyToggle?.(false);
+                        }}
+                        disabled={sendingReply}
+                        className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
-                )}
-                
-                {/* Authentication Form */}
+                </div>
+
+                {/* Auth forms for when user credentials are needed */}
                 {showAuthForm && (
                   <div className="border-t border-gray-200 p-3 bg-gray-50 flex-shrink-0">
                     <div className="text-xs text-gray-600 mb-2">Enter your email credentials to send:</div>
@@ -506,8 +503,8 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                         Cancel
                       </button>
                       <button
-                        onClick={handleSendWithCredentials}
-                        disabled={!authCredentials.username || !authCredentials.password}
+                        onClick={handleSendWithAuth}
+                        disabled={!authCredentials.username || !authCredentials.password || !authCredentials.senderEmail}
                         className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                       >
                         Send Reply
@@ -516,7 +513,6 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                   </div>
                 )}
 
-                {/* Password Only Form for Logged Users */}
                 {needPassword && (
                   <div className="border-t border-gray-200 p-3 bg-blue-50 flex-shrink-0">
                     <div className="text-xs text-gray-600 mb-2">
@@ -550,58 +546,27 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                     </div>
                   </div>
                 )}
-
-                {/* Reply Actions */}
-                <div className="border-t border-gray-200 p-2 flex justify-end items-center flex-shrink-0">
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={handleSendReply}
-                      disabled={sendingReply || !replyText.trim()}
-                      className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      {sendingReply ? (
-                        <>
-                          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                          Sending...
-                        </>
-                      ) : (
-                        'Send'
-                      )}
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setShowReply(false);
-                        setReplyStatus(null);
-                        onReplyToggle?.(false);
-                      }}
-                      disabled={sendingReply}
-                      className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {/* Chat Interface - Right Half */}
-            <div className="flex-1 flex flex-col">
-              <ChatInterface 
-                email={email} 
-                className="flex-1" 
-                conversationHistory={conversationHistory}
-                onSendMessage={sendMessage}
-                isLoading={isGeneratingReply}
-              />
+              {/* Chat Interface - Right Half */}
+              <div className="flex-1 flex flex-col h-full">
+                <ChatInterface 
+                  email={email} 
+                  className="h-full" 
+                  conversationHistory={conversationHistory}
+                  onSendMessage={sendMessage}
+                  isLoading={isGeneratingReply}
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Mail View - Always visible */}
-      <div className="flex-1">
+      {/* Mail View - Scrollable Content */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
         {/* Email Header Information */}
-        <div className="border-b border-gray-200 bg-gray-50">
+        <div className="border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -621,48 +586,39 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                   </svg>
                 </span>
               </summary>
-              
-              <div className="mt-2 space-y-1 pl-2 border-l-2 border-gray-200">
-                <div className="flex items-start text-xs">
-                  <span className="font-medium text-gray-700 w-8 flex-shrink-0">To:</span>
-                  <span className="text-gray-900">
-                    {email.to.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
-                  </span>
-                </div>
+              <div className="mt-2 p-2 bg-white rounded border text-xs space-y-1">
+                <div><span className="font-medium">To:</span> {email.to.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}</div>
                 {email.cc && email.cc.length > 0 && (
-                  <div className="flex items-start text-xs">
-                    <span className="font-medium text-gray-700 w-8 flex-shrink-0">CC:</span>
-                    <span className="text-gray-900">
-                      {email.cc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}
-                    </span>
-                  </div>
+                  <div><span className="font-medium">CC:</span> {email.cc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}</div>
                 )}
+                {email.bcc && email.bcc.length > 0 && (
+                  <div><span className="font-medium">BCC:</span> {email.bcc.map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address).join(', ')}</div>
+                )}
+                <div><span className="font-medium">Message-ID:</span> {email.messageId || 'N/A'}</div>
               </div>
             </details>
           </div>
-          
-          {/* Email Actions */}
-          <div className="px-3 pb-2 flex items-center gap-2">
+        </div>
+
+        {/* Action Buttons */}
+        <div className="border-b border-gray-200 p-3 bg-white flex-shrink-0">
+          <div className="flex items-center gap-2">
             <button
-              onClick={email.isRead ? handleMarkAsUnread : handleMarkAsRead}
-              className="p-1.5 hover:bg-blue-100 rounded transition-colors" 
-              title={email.isRead ? 'Mark as unread' : 'Mark as read'}
+              onClick={handleMarkAsUnread}
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="Mark as unread"
             >
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {email.isRead ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                )}
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 3.26a2 2 0 001.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </button>
             <button
               onClick={handleMarkAsFlagged}
-              className="p-1.5 hover:bg-yellow-100 rounded transition-colors"
-              title={email.isFlagged ? 'Unflag' : 'Flag'}
+              className={`p-1.5 hover:bg-gray-100 rounded transition-colors ${email.isFlagged ? 'text-yellow-600' : 'text-gray-600'}`}
+              title={email.isFlagged ? "Remove flag" : "Add flag"}
             >
-              <svg className="w-4 h-4 text-yellow-600" fill={email.isFlagged ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              <svg className="w-4 h-4" fill={email.isFlagged ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 2H21l-3 6 3 6h-8.5l-1-2H5a2 2 0 00-2 2zm9-13.5V9" />
               </svg>
             </button>
             <button
@@ -677,65 +633,65 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
           </div>
         </div>
 
-        {/* Email Content */}
-        <div className="p-3">
-        {loadingBody ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-gray-500">Loading email content...</div>
-          </div>
-        ) : (
-          <div className="prose max-w-none text-sm">
-            {(() => {
-              const content = getEmailContent();
-              if (content?.html) {
-                return <div dangerouslySetInnerHTML={{ __html: content.html }} />;
-              } else if (content?.text) {
-                return (
-                  <pre className="whitespace-pre-wrap font-sans text-gray-900 leading-relaxed">
-                    {content.text}
-                  </pre>
-                );
-              } else {
-                return (
-                  <div className="text-gray-500 text-center py-8">
-                    No content available for this email.
-                  </div>
-                );
-              }
-            })()}
-          </div>
-        )}
+        {/* Email Content - Scrollable */}
+        <div className="p-4">
+          {loadingBody ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">Loading email content...</div>
+            </div>
+          ) : (
+            <div className="prose max-w-none text-sm">
+              {(() => {
+                const content = getEmailContent();
+                if (content?.html) {
+                  return <div dangerouslySetInnerHTML={{ __html: content.html }} />;
+                } else if (content?.text) {
+                  return (
+                    <pre className="whitespace-pre-wrap font-sans text-gray-900 leading-relaxed">
+                      {content.text}
+                    </pre>
+                  );
+                } else {
+                  return (
+                    <div className="text-gray-500 text-center py-8">
+                      No content available for this email.
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+          )}
 
-        {/* Attachments */}
-        {email.attachments.length > 0 && (
-          <div className="mt-8 border-t border-gray-200 pt-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">
-              Attachments ({email.attachments.length})
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {email.attachments.map((attachment, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                      📎
+          {/* Attachments */}
+          {email.attachments.length > 0 && (
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">
+                Attachments ({email.attachments.length})
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {email.attachments.map((attachment, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
+                        📎
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {attachment.filename}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {Math.round(attachment.size / 1024)} KB
+                      </p>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {attachment.filename}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {Math.round(attachment.size / 1024)} KB
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
     </div>

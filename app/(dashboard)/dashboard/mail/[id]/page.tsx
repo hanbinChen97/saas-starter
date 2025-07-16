@@ -28,7 +28,8 @@ export default function MailDetailPage() {
   // Email authentication
   const { 
     isAuthenticated, 
-    isAuthenticating, 
+    isAuthenticating,
+    isValidating,
     authError, 
     logout 
   } = useEmailAuth();
@@ -43,16 +44,20 @@ export default function MailDetailPage() {
 
   // Check authentication and redirect if not authenticated
   useEffect(() => {
-    if (isClient && !isAuthenticated && !isAuthenticating) {
+    if (isClient && !isAuthenticated && !isAuthenticating && !isValidating) {
       router.push('/dashboard/mail');
     }
-  }, [isClient, isAuthenticated, isAuthenticating, router]);
+  }, [isClient, isAuthenticated, isAuthenticating, isValidating, router]);
 
   const { 
     emails, 
     folders, 
     loading, 
     syncing, 
+    backgroundLoading,
+    initialLoaded,
+    loadingProgress,
+    connectionError,
     error,
     hasMore,
     refreshEmails, 
@@ -61,14 +66,16 @@ export default function MailDetailPage() {
     markAsRead,
     markAsFlagged,
     deleteEmail,
+    retryConnection,
     getCacheStats,
     smartSync
   } = useMailCache({ 
     folder: currentFolder, 
-    limit: 50,
-    autoSync: isAuthenticated, // Only auto-sync when authenticated
+    limit: 200,
+    autoSync: isAuthenticated && !isValidating, // Only auto-sync when authenticated and not validating
     syncInterval: 2 * 60 * 1000, // 2 minutes
-    isAuthenticated: isAuthenticated && isClient // Pass authentication state
+    isAuthenticated: isAuthenticated && isClient && !isValidating, // Pass authentication state
+    progressiveLoading: true // 启用渐进式加载
   });
 
   // Decode email address from URL ID
@@ -133,11 +140,39 @@ export default function MailDetailPage() {
     router.push('/dashboard/mail');
   };
 
-  // Show loading during hydration
-  if (!isClient) {
+  // Show loading during hydration, validation, or initial email loading
+  if (!isClient || isValidating || (loading && !initialLoaded)) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center max-w-md">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium mb-2">
+            {!isClient ? '正在初始化...' : 
+             isValidating ? '正在验证会话...' : 
+             loadingProgress}
+          </p>
+          {loading && !initialLoaded && (
+            <div className="space-y-2">
+              <p className="text-gray-500 text-sm">
+                优先加载前 20 封邮件，然后后台继续加载至 200 封
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '30%'}}></div>
+              </div>
+            </div>
+          )}
+          {connectionError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-800 text-sm mb-2">连接已断开，请重新登录</p>
+              <button
+                onClick={retryConnection}
+                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+              >
+                重试连接
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -146,16 +181,20 @@ export default function MailDetailPage() {
   if (!isAuthenticated) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">正在跳转到登录页面...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-50">
       {/* Header */}
-      <div className="border-b border-gray-200 p-2 bg-white flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="border-b border-gray-200 p-3 bg-white flex-shrink-0 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-lg font-semibold text-gray-900">EmAilX Center</h1>
@@ -239,14 +278,41 @@ export default function MailDetailPage() {
               </DialogContent>
             </Dialog>
             
-            {syncing && (
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                Syncing
+            {/* 后台加载状态 */}
+            {backgroundLoading && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                后台加载中
               </div>
             )}
+            
+            {/* 同步状态 */}
+            {syncing && !backgroundLoading && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                同步中
+              </div>
+            )}
+            
+            {/* 连接错误状态 */}
+            {connectionError && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-red-100 text-red-800">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                连接断开
+                <button
+                  onClick={retryConnection}
+                  className="ml-1 px-1 py-0.5 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                >
+                  重试
+                </button>
+              </div>
+            )}
+            
             <div className="text-xs text-gray-500">
-              {emails.length} emails
+              {emails.length} 封邮件
+              {initialLoaded && !loading && backgroundLoading && (
+                <span className="text-green-600 ml-1">(加载更多中...)</span>
+              )}
             </div>
             <Button 
               variant="outline" 
@@ -258,11 +324,12 @@ export default function MailDetailPage() {
             </Button>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="mx-4 my-2 p-3 bg-red-50 border border-red-200 rounded-md flex-shrink-0">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -288,16 +355,16 @@ export default function MailDetailPage() {
       {/* Main Content - Split View */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Email List Sidebar */}
-        <div className={`${isEmailListCollapsed ? 'w-10' : 'w-full md:w-1/3'} border-r border-gray-200 bg-white flex flex-col min-h-0 transition-all duration-300 ${isEmailListCollapsed ? '' : 'md:block'}`}>
+        <div className={`${isEmailListCollapsed ? 'w-12' : 'w-full md:w-80 lg:w-96'} border-r border-gray-200 bg-white flex flex-col transition-all duration-300 min-h-0 flex-shrink-0`}>
           {/* Collapse Toggle Button */}
-          <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50 flex-shrink-0">
             {!isEmailListCollapsed && (
-              <span className="text-xs font-medium text-gray-700">Email List</span>
+              <span className="text-xs font-medium text-gray-700">邮件列表</span>
             )}
             <button
               onClick={() => setIsEmailListCollapsed(!isEmailListCollapsed)}
               className="p-1 rounded hover:bg-gray-200 transition-colors"
-              title={isEmailListCollapsed ? "Expand email list" : "Collapse email list"}
+              title={isEmailListCollapsed ? "展开邮件列表" : "收起邮件列表"}
             >
               <svg 
                 className={`w-3 h-3 text-gray-600 transition-transform duration-200 ${isEmailListCollapsed ? 'rotate-180' : ''}`} 
@@ -311,7 +378,7 @@ export default function MailDetailPage() {
           </div>
 
           {/* Email List Content */}
-          <div className={`flex-1 overflow-hidden ${isEmailListCollapsed ? 'hidden' : ''}`}>
+          <div className={`flex-1 min-h-0 ${isEmailListCollapsed ? 'hidden' : ''}`}>
             <EmailList
               emails={filteredEmails}
               loading={loading}
@@ -326,7 +393,7 @@ export default function MailDetailPage() {
         </div>
 
         {/* Email View Panel */}
-        <div className={`flex-1 overflow-auto email-list-scrollbar smooth-scroll scroll-performance ${selectedEmail ? 'block' : 'hidden md:block'}`}>
+        <div className={`flex-1 min-h-0 overflow-hidden bg-white ${selectedEmail ? 'block' : 'hidden md:block'}`}>
           <EmailView
             email={selectedEmail}
             onUpdate={handleEmailUpdate}

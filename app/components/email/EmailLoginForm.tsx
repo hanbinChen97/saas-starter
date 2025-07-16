@@ -10,6 +10,7 @@ interface EmailLoginFormProps {
   onLogin: (credentials: EmailCredentials) => Promise<void>;
   isLoading?: boolean;
   error?: string | null;
+  connectingStatus?: string; // 新增连接状态
 }
 
 export interface EmailCredentials {
@@ -21,7 +22,7 @@ export interface EmailCredentials {
   encryption: 'SSL' | 'TLS' | 'NONE';
 }
 
-export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLoginFormProps) {
+export function EmailLoginForm({ onLogin, isLoading = false, error, connectingStatus }: EmailLoginFormProps) {
   const [credentials, setCredentials] = useState<EmailCredentials>({
     username: '',
     password: '',
@@ -61,9 +62,18 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
                 {error}
               </div>
             )}
+
+            {connectingStatus && (
+              <div className="p-3 text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  {connectingStatus}
+                </div>
+              </div>
+            )}
             
             <div className="space-y-2">
-              <Label htmlFor="username">Login Username</Label>
+              <Label htmlFor="username">Login Username （ab123456@rwth-aachen.de）</Label>
               <Input
                 id="username"
                 type="text"
@@ -89,7 +99,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error }: EmailLogin
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="emailAddress">Your Email Address</Label>
+              <Label htmlFor="emailAddress">Your Email Address （必填）</Label>
               <Input
                 id="emailAddress"
                 type="email"

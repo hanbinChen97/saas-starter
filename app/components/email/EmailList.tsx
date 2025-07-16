@@ -99,7 +99,10 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
   return (
     <div 
       ref={containerRef} 
-      className="h-full overflow-auto email-list-scrollbar smooth-scroll scroll-performance"
+      className="h-full w-full overflow-y-auto overflow-x-hidden bg-white"
+      style={{
+        scrollBehavior: 'smooth'
+      }}
     >
       <div className="divide-y divide-gray-200">
         {emails.map((email) => (
@@ -113,19 +116,19 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
         
         {/* Loading indicator for infinite scroll */}
         {hasMore && onLoadMore && (
-          <div ref={loadingRef} className="p-2">
+          <div ref={loadingRef} className="p-4 bg-gray-50">
             {loading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-xs text-gray-500">Loading more emails...</span>
+                <span className="ml-2 text-sm text-gray-500">正在加载更多邮件...</span>
               </div>
             ) : (
               <div className="text-center">
                 <button 
                   onClick={onLoadMore}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 hover:bg-blue-100 rounded-md transition-colors border border-blue-200"
                 >
-                  Load more emails
+                  加载更多邮件
                 </button>
               </div>
             )}
@@ -134,8 +137,13 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
         
         {/* End of list indicator */}
         {!hasMore && emails.length > 0 && (
-          <div className="p-2 text-center text-xs text-gray-500">
-            No more emails to load
+          <div className="p-4 text-center text-sm text-gray-500 bg-gray-50 border-t">
+            <span className="inline-flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              所有邮件已加载完成 ({emails.length} 封)
+            </span>
           </div>
         )}
       </div>

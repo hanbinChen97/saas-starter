@@ -37,7 +37,7 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="flex flex-col h-full max-w-7xl mx-auto w-full">
+    <div className="flex flex-col h-full w-full">
       {/* Mobile header */}
       <div className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 p-4 flex-shrink-0">
         <div className="flex items-center">

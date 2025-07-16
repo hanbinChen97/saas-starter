@@ -225,7 +225,16 @@ export async function signOut() {
   const user = (await getUser()) as User;
   const userWithTeam = await getUserWithTeam(user.id);
   await logActivity(userWithTeam?.teamId, user.id, ActivityType.SIGN_OUT);
-  (await cookies()).delete('session');
+  
+  // Clear all authentication tokens and cookies
+  const { clearAuthCookies, revokeAllRefreshTokens } = await import('@/app/lib/auth/tokens');
+  const { removeEmailCredentials } = await import('@/app/lib/auth/email-credentials');
+  
+  await Promise.all([
+    clearAuthCookies(),
+    revokeAllRefreshTokens(user.id),
+    removeEmailCredentials(user.id) // Clear stored email credentials on logout
+  ]);
 }
 
 const updatePasswordSchema = z.object({

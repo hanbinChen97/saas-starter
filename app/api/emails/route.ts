@@ -5,35 +5,58 @@ import {
   validateEmailCredentials,
   EmailAuthCredentials 
 } from '@/app/lib/email-service/mail-imap/email-auth';
+import { getCurrentUser } from '@/app/lib/auth/tokens';
+import { getEmailCredentials } from '@/app/lib/auth/email-credentials';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, folder = 'INBOX', limit = 50, uid, credentials } = body;
+    const { action, folder = 'INBOX', limit = 50, uid } = body;
 
-    // Validate credentials for all operations
-    if (!credentials) {
+    // Get current authenticated user
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Email credentials required for all operations' 
-      }, { status: 400 });
+        error: 'Authentication required' 
+      }, { status: 401 });
     }
 
-    // Validate credentials format
-    if (!credentials.username || !credentials.password || !credentials.host) {
+    // Try to get stored email credentials
+    let emailCredentials: EmailAuthCredentials | null = null;
+    
+    // Check if credentials are provided in the request (for initial setup)
+    if (body.credentials) {
+      const { username, password, host, port, encryption } = body.credentials;
+      if (username && password && host) {
+        emailCredentials = {
+          username,
+          password,
+          host,
+          port: port || 993,
+          encryption: encryption || 'SSL'
+        };
+      }
+    } else {
+      // Try to get stored credentials
+      const storedCredentials = await getEmailCredentials(user.id);
+      if (storedCredentials) {
+        emailCredentials = {
+          username: storedCredentials.username,
+          password: storedCredentials.password,
+          host: storedCredentials.host,
+          port: storedCredentials.port,
+          encryption: storedCredentials.encryption
+        };
+      }
+    }
+
+    if (!emailCredentials) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Username, password, and host are required' 
+        error: 'Email credentials required. Please configure your email settings first.' 
       }, { status: 400 });
     }
-
-    const emailCredentials: EmailAuthCredentials = {
-      username: credentials.username,
-      password: credentials.password,
-      host: credentials.host,
-      port: credentials.port || 993,
-      encryption: credentials.encryption || 'SSL'
-    };
 
     switch (action) {
       case 'authenticate':

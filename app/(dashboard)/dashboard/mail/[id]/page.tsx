@@ -190,11 +190,10 @@ export default function MailDetailPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-50">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-gray-50">
       {/* Header */}
       <div className="border-b border-gray-200 p-3 bg-white flex-shrink-0 shadow-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-lg font-semibold text-gray-900">EmAilX Center</h1>
@@ -323,7 +322,6 @@ export default function MailDetailPage() {
               Logout
             </Button>
           </div>
-        </div>
         </div>
       </div>
 

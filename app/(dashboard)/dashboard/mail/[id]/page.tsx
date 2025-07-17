@@ -12,6 +12,7 @@ import { EmailCompose } from '@/app/components/email/EmailCompose';
 import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
 import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/app/components/ui/dialog';
+import { emailDB } from '@/app/lib/email-service/mail-imap/database';
 
 export default function MailDetailPage() {
   const params = useParams();
@@ -138,6 +139,28 @@ export default function MailDetailPage() {
   const handleLogout = () => {
     logout();
     router.push('/dashboard/mail');
+  };
+
+  const handleClearIndexedDB = async () => {
+    try {
+      // Clear all IndexedDB data
+      await emailDB.emails.clear();
+      await emailDB.emailBodies.clear();
+      await emailDB.folders.clear();
+      await emailDB.syncInfo.clear();
+      
+      // Clear local state
+      setSelectedEmail(null);
+      
+      // Show success message
+      alert('IndexedDB数据已清除');
+      
+      // Reload emails from server
+      await refreshEmails();
+    } catch (error) {
+      console.error('Error clearing IndexedDB:', error);
+      alert('清除IndexedDB数据失败');
+    }
   };
 
   // Show loading during hydration, validation, or initial email loading
@@ -313,6 +336,15 @@ export default function MailDetailPage() {
                 <span className="text-green-600 ml-1">(加载更多中...)</span>
               )}
             </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleClearIndexedDB}
+              className="text-xs"
+              title="Clear IndexedDB cache"
+            >
+              Clear Cache
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 

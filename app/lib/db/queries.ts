@@ -2,7 +2,7 @@ import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users } from './schema';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/app/lib/auth/session';
+import { verifyToken, updateUserActivity } from '@/app/lib/auth/session';
 
 export async function getUser() {
   const sessionCookie = (await cookies()).get('session');
@@ -32,6 +32,9 @@ export async function getUser() {
   if (user.length === 0) {
     return null;
   }
+
+  // Update user activity when successfully retrieving user
+  updateUserActivity(sessionData.user.id);
 
   return user[0];
 }

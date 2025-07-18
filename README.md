@@ -4,6 +4,8 @@ This is a starter template for building a SaaS application using **Next.js** wit
 
 **Demo: [https://next-saas-start.vercel.app/](https://next-saas-start.vercel.app/)**
 
+[![Watch the video](https://img.youtube.com/vi/m35XBSk6akE/hqdefault.jpg)](https://www.youtube.com/watch?v=m35XBSk6akE)
+
 ## Features
 
 - Marketing landing page (`/`) with animated Terminal element

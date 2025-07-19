@@ -9,7 +9,7 @@ You can check out the live demo at [Live Demo](https://saas-starter-khaki-five.v
 
 
 <div align="center">
-  <video src="assets/emailx.mp4" autoplay loop muted playsinline width="600">
+  <video src="https://github.com/user-attachments/assets/4ffefd30-9b15-4701-b7e0-a529d783daf8" autoplay loop muted playsinline width="600">
     Your browser does not support the video tag.
   </video>
 </div>

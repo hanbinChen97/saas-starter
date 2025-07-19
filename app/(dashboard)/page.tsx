@@ -26,8 +26,8 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link href="/dashboard/emails">
-                    View Demo
+                  <Link href="/demo">
+                    SuperC-Terminator Bot Demo
                   </Link>
                 </Button>
               </div>
@@ -160,8 +160,8 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link href="/dashboard/emails">
-                    Try Demo
+                  <Link href="/demo">
+                    SuperC-Terminator Bot Demo
                   </Link>
                 </Button>
               </div>

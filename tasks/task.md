@@ -66,3 +66,7 @@ const userActivityMap = new Map<number, Date>();
 - 控制台会记录session刷新和过期事件
 - 可以跟踪用户活动模式
 - 便于调试认证相关问题
+
+
+
+main page 的 scrollable 有问题。

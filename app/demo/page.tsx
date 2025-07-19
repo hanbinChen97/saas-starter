@@ -45,9 +45,9 @@ export default function DemoPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-gray-200 bg-white flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center">
             <div className="h-8 w-8 bg-orange-500 rounded-full flex items-center justify-center">
@@ -63,8 +63,9 @@ export default function DemoPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Scrollable */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">SuperC-Terminator Bot</h1>
           <p className="text-lg text-gray-600">智能查询系统演示 - 模拟多网站数据检索流程</p>
@@ -167,15 +168,16 @@ export default function DemoPage() {
           </CardContent>
         </Card>
 
-        {/* 技术说明 */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>
-            技术实现：React + TypeScript + Next.js | 
-            状态管理：React Hooks | 
-            样式：Tailwind CSS + shadcn/ui
-          </p>
+          {/* 技术说明 */}
+          <div className="mt-8 text-center text-sm text-gray-500">
+            <p>
+              技术实现：React + TypeScript + Next.js | 
+              状态管理：React Hooks | 
+              样式：Tailwind CSS + shadcn/ui
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

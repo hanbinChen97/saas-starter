@@ -1,10 +1,19 @@
 # Next.js SaaS Starter
 
-This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.
+This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.  
+You can check out the live demo at [Live Demo](https://saas-starter-khaki-five.vercel.app/).
 
-**Demo: [https://next-saas-start.vercel.app/](https://next-saas-start.vercel.app/)**
+## Demo:
 
-[![Watch the video](https://img.youtube.com/vi/m35XBSk6akE/hqdefault.jpg)](https://www.youtube.com/watch?v=m35XBSk6akE)
+[![Watch on YouTube](https://img.shields.io/badge/-Watch%20on%20YouTube-red?logo=youtube&labelColor=grey)](https://www.youtube.com/watch?v=m35XBSk6akE)
+
+
+<div align="center">
+  <video src="assets/emailx.mp4" autoplay loop muted playsinline width="600">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
 
 ## Features
 

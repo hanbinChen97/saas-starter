@@ -14,13 +14,14 @@ const createUserProfileSchema = z.object({
   geburtsdatumDay: z.string().transform((val) => parseInt(val)).pipe(z.number().min(1).max(31)),
   geburtsdatumMonth: z.string().transform((val) => parseInt(val)).pipe(z.number().min(1).max(12)),
   geburtsdatumYear: z.string().transform((val) => parseInt(val)).pipe(z.number().min(1900).max(new Date().getFullYear())),
-  preferredLocations: z.string().transform((val) => {
+  preferredLocations: z.string().optional().transform((val) => {
+    if (!val) return ['superc'];
     try {
       return JSON.parse(val);
     } catch {
       return ['superc'];
     }
-  }).pipe(z.array(z.string())).default(['superc']),
+  }).pipe(z.array(z.string())),
 });
 
 export const createUserProfile = validatedActionWithUser(

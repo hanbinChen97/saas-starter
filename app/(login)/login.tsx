@@ -10,11 +10,19 @@ import { CircleIcon, Loader2 } from 'lucide-react';
 import { signIn, signUp } from './actions';
 import { ActionState } from '@/app/lib/auth/middleware';
 
-export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
+export function Login({ 
+  mode = 'signin', 
+  module 
+}: { 
+  mode?: 'signin' | 'signup';
+  module?: string;
+}) {
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const priceId = searchParams.get('priceId');
   const inviteId = searchParams.get('inviteId');
+  // Use module prop or fallback to URL param or default to 'dashboard'
+  const activeModule = module || searchParams.get('module') || 'dashboard';
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     mode === 'signin' ? signIn : signUp,
     { error: '' }
@@ -38,6 +46,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
           <input type="hidden" name="redirect" value={redirect || ''} />
           <input type="hidden" name="priceId" value={priceId || ''} />
           <input type="hidden" name="inviteId" value={inviteId || ''} />
+          <input type="hidden" name="module" value={activeModule} />
           <div>
             <Label
               htmlFor="email"
@@ -125,9 +134,16 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
           <div className="mt-6">
             <Link
-              href={`${mode === 'signin' ? '/sign-up' : '/sign-in'}${
-                redirect ? `?redirect=${redirect}` : ''
-              }${priceId ? `&priceId=${priceId}` : ''}`}
+              href={(() => {
+                const basePath = mode === 'signin' ? '/sign-up' : '/sign-in';
+                const params = new URLSearchParams();
+                if (redirect) params.set('redirect', redirect);
+                if (priceId) params.set('priceId', priceId);
+                if (inviteId) params.set('inviteId', inviteId);
+                if (activeModule && activeModule !== 'dashboard') params.set('module', activeModule);
+                const queryString = params.toString();
+                return queryString ? `${basePath}?${queryString}` : basePath;
+              })()}
               className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
             >
               {mode === 'signin'

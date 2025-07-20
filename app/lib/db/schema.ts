@@ -5,6 +5,10 @@ import {
   text,
   timestamp,
   integer,
+  jsonb,
+  boolean,
+  bigint,
+  bigserial,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -68,15 +72,86 @@ export const invitations = pgTable('invitations', {
   status: varchar('status', { length: 20 }).notNull().default('pending'),
 });
 
+export const userProfiles = pgTable('user_profiles', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  userId: integer('user_id')
+    .references(() => users.id),
+  vorname: text('vorname'),
+  nachname: text('nachname'),
+  phone: text('phone'),
+  geburtsdatumDay: integer('geburtsdatum_day'),
+  geburtsdatumMonth: integer('geburtsdatum_month'),
+  geburtsdatumYear: integer('geburtsdatum_year'),
+  preferredLocations: jsonb('preferred_locations'),
+  isComplete: boolean('is_complete').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const waitingList = pgTable('waiting_list', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  userId: integer('user_id')
+    .references(() => users.id),
+  locationType: text('location_type'),
+  status: text('status').default('pending'),
+  currentRetryCount: integer('current_retry_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const appointmentRecords = pgTable('appointment_records', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  userId: integer('user_id')
+    .references(() => users.id),
+  waitingListId: bigint('waiting_list_id', { mode: 'number' })
+    .references(() => waitingList.id),
+  locationType: text('location_type'),
+  bookingStatus: text('booking_status'),
+  appointmentDate: timestamp('appointment_date'),
+  errorMessage: text('error_message'),
+  formDataSnapshot: jsonb('form_data_snapshot'),
+  bookingDurationMs: integer('booking_duration_ms'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const teamsRelations = relations(teams, ({ many }) => ({
   teamMembers: many(teamMembers),
   activityLogs: many(activityLogs),
   invitations: many(invitations),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   teamMembers: many(teamMembers),
   invitationsSent: many(invitations),
+  profile: one(userProfiles),
+  waitingListEntries: many(waitingList),
+  appointmentRecords: many(appointmentRecords),
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [userProfiles.userId],
+    references: [users.id],
+  }),
+}));
+
+export const waitingListRelations = relations(waitingList, ({ one, many }) => ({
+  user: one(users, {
+    fields: [waitingList.userId],
+    references: [users.id],
+  }),
+  appointmentRecords: many(appointmentRecords),
+}));
+
+export const appointmentRecordsRelations = relations(appointmentRecords, ({ one }) => ({
+  user: one(users, {
+    fields: [appointmentRecords.userId],
+    references: [users.id],
+  }),
+  waitingListEntry: one(waitingList, {
+    fields: [appointmentRecords.waitingListId],
+    references: [waitingList.id],
+  }),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -122,6 +197,12 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type Invitation = typeof invitations.$inferSelect;
 export type NewInvitation = typeof invitations.$inferInsert;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;
+export type WaitingList = typeof waitingList.$inferSelect;
+export type NewWaitingList = typeof waitingList.$inferInsert;
+export type AppointmentRecord = typeof appointmentRecords.$inferSelect;
+export type NewAppointmentRecord = typeof appointmentRecords.$inferInsert;
 export type TeamDataWithMembers = Team & {
   teamMembers: (TeamMember & {
     user: Pick<User, 'id' | 'name' | 'email'>;

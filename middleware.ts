@@ -2,15 +2,27 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { signToken, verifyToken, updateUserActivity, shouldRefreshSession } from '@/app/lib/auth/session';
 
-const protectedRoutes = '/dashboard';
+const protectedRoutes = ['/dashboard/main', '/superc/main'];
+
+// Module-specific login routes mapping
+const moduleLoginRoutes: Record<string, string> = {
+  '/dashboard/main': '/dashboard/login',
+  '/superc/main': '/superc/login'
+};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('session');
-  const isProtectedRoute = pathname.startsWith(protectedRoutes);
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
   if (isProtectedRoute && !sessionCookie) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    // Find the appropriate login route for the module
+    const moduleRoute = Object.keys(moduleLoginRoutes).find(route => 
+      pathname.startsWith(route)
+    );
+    const loginRoute = moduleRoute ? moduleLoginRoutes[moduleRoute] : '/sign-in';
+    
+    return NextResponse.redirect(new URL(loginRoute, request.url));
   }
 
   let res = NextResponse.next();

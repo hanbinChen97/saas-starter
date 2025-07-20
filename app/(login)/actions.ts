@@ -91,13 +91,25 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
     logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN)
   ]);
 
+  // Module-specific redirect logic
   const redirectTo = formData.get('redirect') as string | null;
+  const module = formData.get('module') as string | null;
+  
+  const moduleRedirectMap: Record<string, string> = {
+    'dashboard': '/dashboard/main',
+    'superc': '/superc/main'
+  };
+
   if (redirectTo === 'checkout') {
     const priceId = formData.get('priceId') as string;
     return createCheckoutSession({ team: foundTeam, priceId });
   }
 
-  redirect('/dashboard');
+  if (module && moduleRedirectMap[module]) {
+    redirect(moduleRedirectMap[module]);
+  } else {
+    redirect('/dashboard/main'); // Default redirect
+  }
 });
 
 const signUpSchema = z.object({
@@ -212,13 +224,25 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
     setSession(createdUser)
   ]);
 
+  // Module-specific redirect logic
   const redirectTo = formData.get('redirect') as string | null;
+  const module = formData.get('module') as string | null;
+  
+  const moduleRedirectMap: Record<string, string> = {
+    'dashboard': '/dashboard/main',
+    'superc': '/superc/main'
+  };
+
   if (redirectTo === 'checkout') {
     const priceId = formData.get('priceId') as string;
     return createCheckoutSession({ team: createdTeam, priceId });
   }
 
-  redirect('/dashboard');
+  if (module && moduleRedirectMap[module]) {
+    redirect(moduleRedirectMap[module]);
+  } else {
+    redirect('/dashboard/main'); // Default redirect
+  }
 });
 
 export async function signOut() {

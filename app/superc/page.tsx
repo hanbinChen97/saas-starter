@@ -1,6 +1,8 @@
 import { Button } from '@/app/components/ui/button';
 import { ArrowRight, Search, FileText, Calendar, Users, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { Terminal } from './terminal';
+
 
 export default function SuperCLandingPage() {
   return (
@@ -33,23 +35,7 @@ export default function SuperCLandingPage() {
               </div>
             </div>
             <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
-              <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
-                <div className="relative block w-full bg-white rounded-lg overflow-hidden">
-                  <div className="bg-gradient-to-br from-orange-50 to-red-100 px-6 py-8">
-                    <div className="flex items-center justify-center">
-                      <div className="bg-orange-600 p-3 rounded-full">
-                        <Search className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                    <h3 className="mt-4 text-xl font-medium text-gray-900 text-center">
-                      SuperC Anmeldung
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-600 text-center">
-                      Schnelle und einfache Registrierung für SuperC Services
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Terminal />
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export default function MailLoginPage() {
         
         // 给用户一点时间看到成功信息，然后立即跳转
         setTimeout(() => {
-          router.push(`/dashboard/mail/${emailId}`);
+          router.push(`/dashboard/main/mail/${emailId}`);
         }, 500);
       } else {
         setConnectingStatus('');

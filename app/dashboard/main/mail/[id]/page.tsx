@@ -46,7 +46,7 @@ export default function MailDetailPage() {
   // Check authentication and redirect if not authenticated
   useEffect(() => {
     if (isClient && !isAuthenticated && !isAuthenticating && !isValidating) {
-      router.push('/dashboard/mail');
+      router.push('/dashboard/main/mail');
     }
   }, [isClient, isAuthenticated, isAuthenticating, isValidating, router]);
 
@@ -138,7 +138,7 @@ export default function MailDetailPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/dashboard/mail');
+    router.push('/dashboard/main/mail');
   };
 
   const handleClearIndexedDB = async () => {

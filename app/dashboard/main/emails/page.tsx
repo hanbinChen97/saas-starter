@@ -18,15 +18,15 @@ export default function EmailsRedirectPage() {
           
           if (storedSessionId && lastEmailId) {
             // Redirect to the last used email page
-            router.push(`/dashboard/mail/${lastEmailId}`);
+            router.push(`/dashboard/main/mail/${lastEmailId}`);
           } else {
             // Redirect to mail login to choose email account
-            router.push('/dashboard/mail');
+            router.push('/dashboard/main/mail');
           }
         }
       } else {
         // User needs to authenticate first
-        router.push('/dashboard/mail');
+        router.push('/dashboard/main/mail');
       }
     }
   }, [isAuthenticated, isAuthenticating, isValidating, router]);

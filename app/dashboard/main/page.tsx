@@ -14,7 +14,7 @@ export default function DashboardPage() {
           <p className="text-gray-600 mt-1">Your intelligent email management center</p>
         </div>
         <Button asChild className="bg-blue-600 hover:bg-blue-700">
-          <Link href="/dashboard/emails">
+          <Link href="/dashboard/main/emails">
             <Mail className="h-4 w-4 mr-2" />
             Open Emails
           </Link>
@@ -119,25 +119,25 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-3">
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/dashboard/emails">
+                <Link href="/dashboard/main/emails">
                   <Inbox className="h-4 w-4 mr-2" />
                   View Inbox
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/dashboard/emails">
+                <Link href="/dashboard/main/emails">
                   <Send className="h-4 w-4 mr-2" />
                   Compose Email
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/dashboard/emails">
+                <Link href="/dashboard/main/emails">
                   <Archive className="h-4 w-4 mr-2" />
                   View Archive
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/dashboard/emails">
+                <Link href="/dashboard/main/emails">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Folders
                 </Link>

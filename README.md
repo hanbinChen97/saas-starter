@@ -8,7 +8,7 @@ You can check out the live demo at [Live Demo](https://saas-starter-khaki-five.v
 [![Watch on YouTube](https://img.shields.io/badge/-Watch%20on%20YouTube-red?logo=youtube&labelColor=grey)](https://www.youtube.com/watch?v=m35XBSk6akE)
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/f61a3aaf-6cf6-4dc6-a313-2023e530a73c" autoplay loop muted playsinline width="600">
+  <video src="https://github.com/user-attachments/assets/a663164d-9521-4b75-81ed-dbf09df60f53" autoplay loop muted playsinline width="600">
     Your browser does not support the video tag.
   </video>
 </div>

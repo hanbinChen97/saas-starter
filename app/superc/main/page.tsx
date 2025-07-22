@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
-import { Search, Loader2, CheckCircle } from 'lucide-react';
+import { Search, Loader2, CheckCircle, Coffee } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { createUserProfile } from './actions';
@@ -227,6 +227,38 @@ export default function SuperCPage() {
                   )}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* 打赏卡片 */}
+          <Card className="mt-8 bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="flex justify-center mb-3">
+                  <Coffee className="h-8 w-8 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Gefällt Ihnen unser Service?
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Wenn Sie mit unserem SuperC Service zufrieden sind, können Sie uns gerne einen Kaffee spendieren! ☕
+                </p>
+                <Button 
+                  asChild
+                  variant="outline"
+                  className="bg-white hover:bg-orange-50 border-orange-300 text-orange-700 hover:text-orange-800"
+                >
+                  <a 
+                    href="https://www.paypal.com/paypalme/SupaCAachen?locale.x=de_DE&country.x=DE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                  >
+                    <Coffee className="h-4 w-4 mr-2" />
+                    Einen Kaffee spendieren
+                  </a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

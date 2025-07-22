@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/app/lib/db/drizzle';
-import { userProfiles } from '@/app/lib/db/schema';
+import { appointmentProfiles } from '@/app/lib/db/schema';
 import { validatedActionWithUser } from '@/app/lib/auth/middleware';
 import { redirect } from 'next/navigation';
 
@@ -28,7 +28,7 @@ export const createUserProfile = validatedActionWithUser(
   createUserProfileSchema,
   async (data, formData, user) => {
     try {
-      await db.insert(userProfiles).values({
+      await db.insert(appointmentProfiles).values({
         userId: user.id,
         vorname: data.vorname,
         nachname: data.nachname,
@@ -37,7 +37,6 @@ export const createUserProfile = validatedActionWithUser(
         geburtsdatumMonth: data.geburtsdatumMonth,
         geburtsdatumYear: data.geburtsdatumYear,
         preferredLocations: data.preferredLocations,
-        isComplete: true,
       });
 
       return { success: true, message: 'Profil erfolgreich erstellt!' };

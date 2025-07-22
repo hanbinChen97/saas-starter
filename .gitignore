@@ -59,3 +59,4 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+package-lock.json

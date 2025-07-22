@@ -1,5 +1,5 @@
 import { Button } from '@/app/components/ui/button';
-import { ArrowRight, Search, FileText, Calendar, Users, Shield } from 'lucide-react';
+import { ArrowRight, Search, FileText, Calendar, Users, Shield, Check, Euro } from 'lucide-react';
 import Link from 'next/link';
 import { Terminal } from './terminal';
 
@@ -36,6 +36,68 @@ export default function SuperCLandingPage() {
             </div>
             <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
               <Terminal />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-16 bg-gradient-to-br from-orange-50 to-red-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-base text-orange-600 font-semibold tracking-wide uppercase">Preise</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Einfach und transparent
+            </p>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+              Nur eine einmalige Gebühr für Ihre SuperC-Anmeldung
+            </p>
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-w-lg w-full">
+              <div className="px-8 py-12 text-center">
+                <div className="flex justify-center items-center mb-4">
+                  <Euro className="h-8 w-8 text-orange-600 mr-2" />
+                  <span className="text-5xl font-bold text-gray-900">10</span>
+                  <span className="text-xl text-gray-500 ml-2">einmalig</span>
+                </div>
+                
+                <div className="mb-6">
+                  <p className="text-lg text-orange-600 font-semibold">💰 Eine Mahlzeit, unendlicher Komfort</p>
+                  <p className="text-gray-500 mt-2">Was Sie für eine Mahlzeit ausgeben, investieren Sie in stressfreie SuperC-Anmeldung</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center text-left">
+                    <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Automatische Terminsuche</span>
+                  </div>
+                  <div className="flex items-center text-left">
+                    <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Sofortige Benachrichtigungen</span>
+                  </div>
+                  <div className="flex items-center text-left">
+                    <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">Kein Stress, keine Warteschlangen</span>
+                  </div>
+                  <div className="flex items-center text-left">
+                    <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">24/7 Service verfügbar</span>
+                  </div>
+                </div>
+
+                <Button asChild size="lg" className="bg-orange-600 hover:bg-orange-700 w-full">
+                  <Link href="/superc/login">
+                    Jetzt für 10€ starten
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                
+                <p className="text-sm text-gray-500 mt-4">
+                  ✨ Einmalzahlung • Keine versteckten Kosten • Sofortiger Zugang
+                </p>
+              </div>
             </div>
           </div>
         </div>

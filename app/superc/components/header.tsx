@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Search, LogOut, User } from 'lucide-react';
 import {
@@ -14,23 +14,40 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar'
 import { signOut } from '@/app/(login)/actions';
 import { useRouter } from 'next/navigation';
 import { User as UserType } from '@/app/lib/db/schema';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-function UserMenu() {
+interface UserMenuProps {
+  user?: UserType | null;
+}
+
+function UserMenu({ user: propUser }: UserMenuProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: user } = useSWR<UserType>('/api/user', fetcher);
   const router = useRouter();
+  
+  // Only use SWR if no user prop is provided (fallback for non-protected routes)
+  const { data: fetchedUser, isLoading } = useSWR<UserType>(
+    propUser === undefined ? '/api/user' : null, 
+    fetcher
+  );
+  
+  // Use prop user if provided, otherwise use fetched user
+  const user = propUser !== undefined ? propUser : fetchedUser;
 
   async function handleSignOut() {
     await signOut();
-    mutate('/api/user');
     router.push('/superc');
   }
 
-  // Since the main page now requires authentication, 
-  // users should always be logged in when they reach SuperC
+  // Show loading state only when fetching (not when user prop is provided)
+  if (propUser === undefined && isLoading) {
+    return (
+      <div className="w-16 h-9 bg-gray-200 animate-pulse rounded-md"></div>
+    );
+  }
+
+  // If no user, show login button
   if (!user) {
     return (
       <Button asChild className="bg-orange-600 hover:bg-orange-700">
@@ -69,7 +86,11 @@ function UserMenu() {
   );
 }
 
-export default function SuperCHeader() {
+interface SuperCHeaderProps {
+  user?: UserType | null;
+}
+
+export default function SuperCHeader({ user }: SuperCHeaderProps) {
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -80,7 +101,7 @@ export default function SuperCHeader() {
           <span className="ml-2 text-lg font-semibold text-gray-900">SupaC</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <UserMenu />
+          <UserMenu user={user} />
         </div>
       </div>
     </header>

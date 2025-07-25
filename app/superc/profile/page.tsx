@@ -2,10 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
 import { CalendarIcon, ClockIcon, MapPinIcon, UserIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SuperCHeader from '../components/header';
 import { AppointmentProfile } from '@/app/lib/db/schema';
+import { cancelAppointment } from '../main/actions';
 
 interface QueueInfo {
   position: number;
@@ -16,6 +18,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<AppointmentProfile | null>(null);
   const [queueInfo, setQueueInfo] = useState<QueueInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -35,6 +39,37 @@ export default function ProfilePage() {
 
     loadProfile();
   }, []);
+
+  const handleCancelAppointment = async () => {
+    if (!confirm('确定要取消预约吗？此操作无法撤销。')) {
+      return;
+    }
+
+    setCancelling(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      const result = await cancelAppointment({}, formData);
+      
+      if ('success' in result && result.success) {
+        setMessage({ type: 'success', text: result.message });
+        // Refresh profile data after successful cancellation
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else if ('error' in result) {
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'error', text: result.message || '取消预约失败。' });
+      }
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      setMessage({ type: 'error', text: '取消预约时发生错误。' });
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -102,6 +137,17 @@ export default function ProfilePage() {
           <p className="text-gray-600 mt-2">查看您的预约信息和当前状态</p>
         </div>
 
+        {/* Message display */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.type === 'success' 
+              ? 'bg-green-50 text-green-800 border border-green-200' 
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
         <div className="grid gap-6 md:grid-cols-2">
           {/* 基本信息 */}
           <Card>
@@ -166,6 +212,24 @@ export default function ProfilePage() {
                   <label className="text-sm font-medium text-gray-500">预约时间</label>
                   <p className="text-gray-900">
                     {new Date(profile.appointmentDate).toLocaleString('zh-CN')}
+                  </p>
+                </div>
+              )}
+              
+              {/* Cancel button - only show if appointment status is waiting or booked */}
+              {(profile.appointmentStatus === 'waiting' || profile.appointmentStatus === 'booked') && (
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCancelAppointment}
+                    disabled={cancelling}
+                    className="w-full"
+                  >
+                    {cancelling ? '取消中...' : '取消预约'}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    取消预约后，您的排队位置将会丢失
                   </p>
                 </div>
               )}

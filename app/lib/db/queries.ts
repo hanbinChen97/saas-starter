@@ -155,7 +155,7 @@ export async function getQueuePosition(userId: number) {
     .where(and(eq(appointmentProfiles.userId, userId), eq(appointmentProfiles.appointmentStatus, 'waiting')))
     .limit(1);
 
-  if (!userProfile[0]) {
+  if (!userProfile[0] || !userProfile[0].createdAt) {
     return null;
   }
 

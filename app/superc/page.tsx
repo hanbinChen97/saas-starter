@@ -1,10 +1,21 @@
+'use client';
+
 import { ArrowRight, Search, Calendar, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Terminal } from './terminal';
+import SuperCHeader from './components/header';
+import useSWR from 'swr';
+import { User } from '@/app/lib/db/schema';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function SupaCLandingPage() {
+  const { data: user } = useSWR<User>('/api/user', fetcher);
+  
   return (
-    <main>
+    <div className="min-h-screen bg-white">
+      <SuperCHeader />
+      <main>
       {/* Hero Section */}
       <section className="py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,10 +31,10 @@ export default function SupaCLandingPage() {
               </p>
               <div className="mt-8">
                 <Link 
-                  href="/superc/login"
+                  href={user ? "/superc/main" : "/superc/login"}
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors"
                 >
-                  开始使用
+                  {user ? "进入系统" : "开始使用"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </div>
@@ -80,6 +91,7 @@ export default function SupaCLandingPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </div>
   );
 }

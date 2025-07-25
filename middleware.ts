@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { signToken, verifyToken, updateUserActivity, shouldRefreshSession } from '@/app/lib/auth/session';
 
-const protectedRoutes = ['/dashboard/main', '/superc/main'];
+const protectedRoutes = ['/dashboard/main', '/superc/main', '/superc/profile'];
 
 // Module-specific login routes mapping
 const moduleLoginRoutes: Record<string, string> = {
   '/dashboard/main': '/dashboard/login',
-  '/superc/main': '/superc/login'
+  '/superc/main': '/superc/login',
+  '/superc/profile': '/superc/login'
 };
 
 export async function middleware(request: NextRequest) {

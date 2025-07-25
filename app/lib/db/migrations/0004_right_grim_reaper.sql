@@ -1,0 +1,1 @@
+ALTER TABLE "appointment_profiles" ADD COLUMN "email" text;

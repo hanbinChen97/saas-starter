@@ -1,6 +1,6 @@
-import { desc, and, eq, isNull } from 'drizzle-orm';
+import { desc, and, eq, isNull, lt, count } from 'drizzle-orm';
 import { db } from './drizzle';
-import { activityLogs, teamMembers, teams, users } from './schema';
+import { activityLogs, teamMembers, teams, users, appointmentProfiles } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken, updateUserActivity } from '@/app/lib/auth/session';
 
@@ -130,4 +130,58 @@ export async function getTeamForUser() {
   });
 
   return result?.team || null;
+}
+
+export async function getUserAppointmentProfile() {
+  const user = await getUser();
+  if (!user) {
+    return null;
+  }
+
+  const result = await db
+    .select()
+    .from(appointmentProfiles)
+    .where(eq(appointmentProfiles.userId, user.id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function getQueuePosition(userId: number) {
+  // Get the user's profile to check if they're waiting
+  const userProfile = await db
+    .select({ createdAt: appointmentProfiles.createdAt })
+    .from(appointmentProfiles)
+    .where(and(eq(appointmentProfiles.userId, userId), eq(appointmentProfiles.appointmentStatus, 'waiting')))
+    .limit(1);
+
+  if (!userProfile[0]) {
+    return null;
+  }
+
+  // Count how many people are ahead in the queue (created before this user and still waiting)
+  const result = await db
+    .select({ count: count() })
+    .from(appointmentProfiles)
+    .where(and(
+      eq(appointmentProfiles.appointmentStatus, 'waiting'),
+      lt(appointmentProfiles.createdAt, userProfile[0].createdAt)
+    ));
+
+  const queuePosition = Number(result[0]?.count || 0) + 1; // +1 because position starts from 1
+  
+  return queuePosition;
+}
+
+export async function checkExistingProfile(vorname: string, nachname: string) {
+  const result = await db
+    .select({ id: appointmentProfiles.id })
+    .from(appointmentProfiles)
+    .where(and(
+      eq(appointmentProfiles.vorname, vorname),
+      eq(appointmentProfiles.nachname, nachname)
+    ))
+    .limit(1);
+
+  return result.length > 0;
 }

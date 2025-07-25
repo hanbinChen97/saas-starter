@@ -92,7 +92,6 @@ export function isUserActive(userId: number): boolean {
 
 // Check if session should be refreshed
 export function shouldRefreshSession(sessionData: SessionData): boolean {
-  const userId = sessionData.user.id;
   const expiresAt = new Date(sessionData.expires);
   const now = new Date();
   
@@ -100,8 +99,7 @@ export function shouldRefreshSession(sessionData: SessionData): boolean {
   const timeToExpiry = expiresAt.getTime() - now.getTime();
   const shouldRefreshByTime = timeToExpiry < 15 * 60 * 1000; // 15 minutes
   
-  // Check if user is active
-  const userIsActive = isUserActive(userId);
-  
-  return shouldRefreshByTime && userIsActive;
+  // For now, always refresh if time-based refresh is needed
+  // This avoids the in-memory activity tracking issue
+  return shouldRefreshByTime;
 }

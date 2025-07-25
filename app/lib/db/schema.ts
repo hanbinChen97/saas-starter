@@ -82,6 +82,7 @@ export const appointmentProfiles = pgTable('appointment_profiles', {
   // 基本信息
   vorname: text('vorname'),
   nachname: text('nachname'),
+  email: text('email'),
   phone: text('phone'),
   geburtsdatumDay: integer('geburtsdatum_day'),
   geburtsdatumMonth: integer('geburtsdatum_month'),

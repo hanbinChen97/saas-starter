@@ -7,11 +7,16 @@ import { Label } from '@/app/components/ui/label';
 import { Search, Loader2, CheckCircle, Coffee } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createUserProfile } from './actions';
+import SuperCHeader from '../components/header';
 
 export default function SuperCPage() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitComplete, setSubmitComplete] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string>('');
   const [formData, setFormData] = useState({
     vorname: '',
     nachname: '',
@@ -33,6 +38,8 @@ export default function SuperCPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrors({}); // Clear previous errors
+    setGeneralError(''); // Clear previous general errors
 
     try {
       const formDataObj = new FormData();
@@ -58,11 +65,30 @@ export default function SuperCPage() {
           geburtsdatumMonth: '',
           geburtsdatumYear: '',
         });
+        
+        // Redirect to profile page after a short delay to show success message
+        setTimeout(() => {
+          router.push('/superc/profile');
+        }, 1500);
+      } else if ('success' in result && !result.success) {
+        // Handle general error message (like duplicate registration)
+        setGeneralError(result.message || 'Ein Fehler ist aufgetreten.');
       } else if ('error' in result) {
         console.error('Validation error:', result.error);
+        // Handle field-specific validation errors
+        if (result.error && typeof result.error === 'object') {
+          const fieldErrors: Record<string, string> = {};
+          for (const [field, messages] of Object.entries(result.error)) {
+            if (Array.isArray(messages) && messages.length > 0) {
+              fieldErrors[field] = messages[0];
+            }
+          }
+          setErrors(fieldErrors);
+        }
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      setGeneralError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,21 +97,7 @@ export default function SuperCPage() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/superc" className="flex items-center">
-            <div className="h-8 w-8 bg-orange-500 rounded-full flex items-center justify-center">
-              <Search className="h-4 w-4 text-white" />
-            </div>
-            <span className="ml-2 text-lg font-semibold text-gray-900">SuperC Anmeldung</span>
-          </Link>
-          <div className="flex items-center space-x-4">
-            <Link href="/superc" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-              Zurück zu SuperC
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SuperCHeader />
 
       {/* Main Content - Scrollable */}
       <main className="flex-1 overflow-y-auto">
@@ -108,6 +120,12 @@ export default function SuperCPage() {
                     <span className="font-medium">Anmeldung erfolgreich abgeschickt!</span>
                   </div>
                 )}
+                
+                {generalError && (
+                  <div className="flex items-center text-red-600 bg-red-50 px-4 py-3 rounded-lg">
+                    <span className="font-medium">{generalError}</span>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -119,7 +137,11 @@ export default function SuperCPage() {
                       value={formData.vorname}
                       onChange={handleInputChange}
                       required
+                      className={errors.vorname ? 'border-red-500' : ''}
                     />
+                    {errors.vorname && (
+                      <p className="text-sm text-red-600">{errors.vorname}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nachname">Nachname *</Label>
@@ -130,7 +152,11 @@ export default function SuperCPage() {
                       value={formData.nachname}
                       onChange={handleInputChange}
                       required
+                      className={errors.nachname ? 'border-red-500' : ''}
                     />
+                    {errors.nachname && (
+                      <p className="text-sm text-red-600">{errors.nachname}</p>
+                    )}
                   </div>
                 </div>
 
@@ -142,8 +168,13 @@ export default function SuperCPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    placeholder="beispiel@domain.com"
                     required
+                    className={errors.email ? 'border-red-500' : ''}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -154,8 +185,13 @@ export default function SuperCPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    placeholder="015712344321"
                     required
+                    className={errors.phone ? 'border-red-500' : ''}
                   />
+                  {errors.phone && (
+                    <p className="text-sm text-red-600">{errors.phone}</p>
+                  )}
                 </div>
 
                 <div className="space-y-4">

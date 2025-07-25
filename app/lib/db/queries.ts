@@ -1,5 +1,7 @@
 import { desc, and, eq, isNull, lt, count } from 'drizzle-orm';
+import { desc, and, eq, isNull, lt, count } from 'drizzle-orm';
 import { db } from './drizzle';
+import { activityLogs, teamMembers, teams, users, appointmentProfiles } from './schema';
 import { activityLogs, teamMembers, teams, users, appointmentProfiles } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken, updateUserActivity } from '@/app/lib/auth/session';
@@ -155,7 +157,7 @@ export async function getQueuePosition(userId: number) {
     .where(and(eq(appointmentProfiles.userId, userId), eq(appointmentProfiles.appointmentStatus, 'waiting')))
     .limit(1);
 
-  if (!userProfile[0] || !userProfile[0].createdAt) {
+  if (!userProfile[0]) {
     return null;
   }
 

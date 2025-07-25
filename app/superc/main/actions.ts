@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db } from '@/app/lib/db/drizzle';
 import { appointmentProfiles } from '@/app/lib/db/schema';
 import { validatedActionWithUser } from '@/app/lib/auth/middleware';
@@ -52,6 +53,45 @@ export const createUserProfile = validatedActionWithUser(
     } catch (error) {
       console.error('Error creating user profile:', error);
       return { success: false, message: 'Fehler beim Erstellen des Profils.' };
+    }
+  }
+);
+
+export const cancelAppointment = validatedActionWithUser(
+  z.object({}), // No input validation needed for cancellation
+  async (data, formData, user) => {
+    try {
+      // Get user's current appointment profile
+      const profile = await db
+        .select()
+        .from(appointmentProfiles)
+        .where(eq(appointmentProfiles.userId, user.id))
+        .limit(1);
+
+      if (!profile[0]) {
+        return { 
+          success: false, 
+          message: '未找到预约信息。' 
+        };
+      }
+
+      // Check if appointment can be cancelled (waiting or booked status)
+      if (profile[0].appointmentStatus !== 'waiting' && profile[0].appointmentStatus !== 'booked') {
+        return {
+          success: false,
+          message: '当前预约状态无法取消。'
+        };
+      }
+
+      // Delete the appointment profile to cancel the appointment
+      await db
+        .delete(appointmentProfiles)
+        .where(eq(appointmentProfiles.userId, user.id));
+
+      return { success: true, message: '预约已成功取消！' };
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      return { success: false, message: '取消预约时发生错误。' };
     }
   }
 );

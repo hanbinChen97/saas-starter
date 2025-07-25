@@ -1,72 +1,9 @@
+我的软件名字叫 SupaC。
+superc/page，把页面内容，      {/* Features Section */}，      {/* CTA Section */}
+ 精简些，不要 button。
+把app/superc/page.tsx 改成中文。
 
-## Session过期管理改进计划
+根据 schema，export const appointmentProfiles = pgTable('appointment_profiles', {
+preferredLocations: text('preferred_locations').default('superc'),
+现在数据格式是 txt，之前是 json。请你修改 action，把数据格式改成 txt。
 
-### 问题描述
-
-当前session系统存在以下问题：
-1. **Session过期时间过长**：当前设置为1天，安全性不够
-2. **自动刷新机制过于激进**：每次GET请求都刷新，导致session实际上永不过期
-3. **缺少用户活动跟踪**：无法判断用户是否真正活跃
-4. **JWT过期处理不完善**：没有正确处理token过期错误
-
-### 修改文件
-
-#### 1. `app/lib/auth/session.ts`
-- 修改session过期时间为1小时
-- 改进`verifyToken`函数，正确处理JWT过期错误
-- 添加用户最后活动时间记录（使用内存存储，不修改数据库）
-- 添加session刷新逻辑，只在用户活跃时刷新
-
-#### 2. `middleware.ts`
-- 移除每次GET请求都刷新的逻辑
-- 添加用户活动时间检查
-- 实现智能刷新：只有活跃用户且接近过期时才刷新
-- 添加活动时间更新机制
-
-#### 3. `app/lib/db/queries.ts`
-- 改进`getUser`函数，增加活动时间验证
-- 添加活动时间更新逻辑
-
-### 实现策略
-
-#### 内存存储用户活动时间
-```typescript
-// 使用Map存储用户最后活动时间，避免数据库修改
-const userActivityMap = new Map<number, Date>();
-```
-
-#### 活动时间管理
-- 用户每次访问受保护路由时更新活动时间
-- 超过30分钟无活动的用户session不自动刷新
-- 活动时间存储在内存中，应用重启后重置
-
-#### 智能刷新逻辑
-- 检查session是否在1小时内过期
-- 检查用户是否在30分钟内有活动
-- 只有满足两个条件才刷新session
-
-### 预期结果
-
-#### 安全性提升
-- Session从1天缩短到1小时，大幅提升安全性
-- 非活跃用户的session会正常过期
-- JWT过期错误得到正确处理
-
-#### 用户体验
-- 活跃用户session自动刷新，无需重新登录
-- 非活跃用户需要重新登录，符合安全预期
-- 页面刷新和正常浏览不会中断用户体验
-
-#### 系统行为
-- 用户30分钟无活动后，session不再自动刷新
-- 应用重启后，所有用户需要重新登录（活动时间重置）
-- 内存中的活动时间不会持久化，符合隐私要求
-
-#### 监控和调试
-- 控制台会记录session刷新和过期事件
-- 可以跟踪用户活动模式
-- 便于调试认证相关问题
-
-
-
-main page 的 scrollable 有问题。

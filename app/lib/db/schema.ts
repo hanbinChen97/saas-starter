@@ -11,7 +11,7 @@ import {
   bigserial,
   index,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -86,7 +86,7 @@ export const appointmentProfiles = pgTable('appointment_profiles', {
   geburtsdatumDay: integer('geburtsdatum_day'),
   geburtsdatumMonth: integer('geburtsdatum_month'),
   geburtsdatumYear: integer('geburtsdatum_year'),
-  preferredLocations: jsonb('preferred_locations'),
+  preferredLocations: text('preferred_locations').default('superc'),
   
   // 预约状态和进度
   appointmentStatus: text('appointment_status').default('waiting'), // waiting, booked
@@ -103,7 +103,8 @@ export const appointmentProfiles = pgTable('appointment_profiles', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => {
   return {
-    statusCreatedAtIdx: index('status_created_at_idx').on(table.appointmentStatus, table.createdAt),
+    // 部分索引：只对等待状态的记录建立索引，按创建时间升序排列，方便查找排队最久的人
+    waitingQueueIdx: index('waiting_queue_idx').on(table.createdAt).where(sql`appointment_status = 'waiting'`),
   }
 });
 

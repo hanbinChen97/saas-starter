@@ -22,6 +22,13 @@
       "when": 1753227205712,
       "tag": "0002_giant_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1753367739673,
+      "tag": "0003_warm_forge",
+      "breakpoints": true
     }
   ]
 }

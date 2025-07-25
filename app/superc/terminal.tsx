@@ -11,7 +11,7 @@ export function Terminal() {
     'Schritt 2: 选择RWTH服务类型并选择SuperC',
     'Schritt 3: 添加位置信息',
     'Schritt 4: 进入预约时间页面',
-    '发现可用时间: Montag, 29.09.2025 09:30',
+    '发现可用时间: Montag, 05.10.2025 09:30',
     'Schritt 5: 准备填写最终表单...',
     'Schritt 5: 加载个人信息...',
     'Schritt 5: 提交表单数据',

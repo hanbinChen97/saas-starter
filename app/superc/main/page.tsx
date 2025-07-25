@@ -43,7 +43,7 @@ export default function SuperCPage() {
       formDataObj.append('geburtsdatumDay', formData.geburtsdatumDay);
       formDataObj.append('geburtsdatumMonth', formData.geburtsdatumMonth);
       formDataObj.append('geburtsdatumYear', formData.geburtsdatumYear);
-      formDataObj.append('preferredLocations', JSON.stringify(['superc']));
+      formDataObj.append('preferredLocations', 'superc');
       
       const result = await createUserProfile({}, formDataObj);
 
@@ -238,10 +238,10 @@ export default function SuperCPage() {
                   <Coffee className="h-8 w-8 text-orange-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Gefällt Ihnen unser Service?
+                  喜欢我们的服务吗？
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Wenn Sie mit unserem SuperC Service zufrieden sind, können Sie uns gerne einen Kaffee spendieren! ☕
+                  如果您对我们的 SupaC 服务满意，欢迎请我们喝杯咖啡！☕
                 </p>
                 <Button 
                   asChild
@@ -255,7 +255,7 @@ export default function SuperCPage() {
                     className="inline-flex items-center"
                   >
                     <Coffee className="h-4 w-4 mr-2" />
-                    Einen Kaffee spendieren
+                    请我们喝咖啡
                   </a>
                 </Button>
               </div>

@@ -105,6 +105,11 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
     return createCheckoutSession({ team: foundTeam, priceId });
   }
 
+  // If redirectTo is specified and it's the root path, go there
+  if (redirectTo === '/') {
+    redirect('/');
+  }
+
   if (module && moduleRedirectMap[module]) {
     redirect(moduleRedirectMap[module]);
   } else {
@@ -236,6 +241,11 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   if (redirectTo === 'checkout') {
     const priceId = formData.get('priceId') as string;
     return createCheckoutSession({ team: createdTeam, priceId });
+  }
+
+  // If redirectTo is specified and it's the root path, go there
+  if (redirectTo === '/') {
+    redirect('/');
   }
 
   if (module && moduleRedirectMap[module]) {

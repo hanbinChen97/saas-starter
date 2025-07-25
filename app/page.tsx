@@ -2,8 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { LayoutDashboard, Search } from 'lucide-react';
 import Link from 'next/link';
+import { getUser } from '@/app/lib/db/queries';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getUser();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -11,7 +14,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">Welcome to SaaS Starter</h1>
-            <p className="mt-2 text-lg text-gray-600">Choose your destination</p>
+            <p className="mt-2 text-lg text-gray-600">
+              Choose your destination, {user?.name || user?.email}
+            </p>
           </div>
         </div>
       </header>

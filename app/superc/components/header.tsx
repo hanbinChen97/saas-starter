@@ -20,7 +20,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: user, isLoading } = useSWR<UserType>('/api/user', fetcher);
+  const { data: user } = useSWR<UserType>('/api/user', fetcher);
   const router = useRouter();
 
   async function handleSignOut() {
@@ -29,13 +29,8 @@ function UserMenu() {
     router.push('/superc');
   }
 
-  // Show loading state instead of login button to prevent flash
-  if (isLoading) {
-    return (
-      <div className="w-16 h-9 bg-gray-200 animate-pulse rounded-md"></div>
-    );
-  }
-
+  // Since the main page now requires authentication, 
+  // users should always be logged in when they reach SuperC
   if (!user) {
     return (
       <Button asChild className="bg-orange-600 hover:bg-orange-700">

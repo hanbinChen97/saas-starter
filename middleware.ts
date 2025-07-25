@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { signToken, verifyToken, updateUserActivity, shouldRefreshSession } from '@/app/lib/auth/session';
 
-const protectedRoutes = ['/dashboard/main', '/superc/main', '/superc/profile'];
+const protectedRoutes = ['/', '/dashboard/main', '/superc/main', '/superc/profile'];
 
 // Module-specific login routes mapping
 const moduleLoginRoutes: Record<string, string> = {
+  '/': '/sign-in',
   '/dashboard/main': '/dashboard/login',
   '/superc/main': '/superc/login',
   '/superc/profile': '/superc/login'
@@ -14,16 +15,22 @@ const moduleLoginRoutes: Record<string, string> = {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('session');
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some(route => 
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  );
 
   if (isProtectedRoute && !sessionCookie) {
     // Find the appropriate login route for the module
     const moduleRoute = Object.keys(moduleLoginRoutes).find(route => 
-      pathname.startsWith(route)
+      route === '/' ? pathname === '/' : pathname.startsWith(route)
     );
     const loginRoute = moduleRoute ? moduleLoginRoutes[moduleRoute] : '/sign-in';
     
-    return NextResponse.redirect(new URL(loginRoute, request.url));
+    // Add redirect parameter to preserve the original destination
+    const redirectUrl = new URL(loginRoute, request.url);
+    redirectUrl.searchParams.set('redirect', pathname);
+    
+    return NextResponse.redirect(redirectUrl);
   }
 
   let res = NextResponse.next();

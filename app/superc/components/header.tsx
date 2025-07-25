@@ -18,15 +18,31 @@ import useSWR, { mutate } from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-function UserMenu() {
+interface UserMenuProps {
+  user?: UserType | null;
+}
+
+function UserMenu({ user: passedUser }: UserMenuProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: user } = useSWR<UserType>('/api/user', fetcher);
+  // Use passed user data if available, otherwise fall back to SWR
+  const { data: swrUser } = useSWR<UserType>(
+    passedUser ? null : '/api/user', 
+    fetcher
+  );
+  const user = passedUser || swrUser;
   const router = useRouter();
 
   async function handleSignOut() {
     await signOut();
     mutate('/api/user');
     router.push('/superc');
+  }
+
+  // Show loading state only when no user is passed and SWR is loading
+  if (!user && !passedUser) {
+    return (
+      <div className="h-9 w-16 bg-gray-200 animate-pulse rounded" />
+    );
   }
 
   if (!user) {
@@ -67,7 +83,11 @@ function UserMenu() {
   );
 }
 
-export default function SuperCHeader() {
+interface SuperCHeaderProps {
+  user?: UserType | null;
+}
+
+export default function SuperCHeader({ user }: SuperCHeaderProps) {
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -78,8 +98,8 @@ export default function SuperCHeader() {
           <span className="ml-2 text-lg font-semibold text-gray-900">SupaC</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <Suspense fallback={<div className="h-9" />}>
-            <UserMenu />
+          <Suspense fallback={<div className="h-9 w-16 bg-gray-200 animate-pulse rounded" />}>
+            <UserMenu user={user} />
           </Suspense>
         </div>
       </div>

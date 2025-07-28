@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Label } from '@/app/components/ui/label';
 import { sendEmailAction } from '@/app/lib/email-service/mail-smtp/actions';
 import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/lib/email-service/mail-smtp/types';
+import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
 
 interface EmailComposeSimpleProps {
   onClose?: () => void;
@@ -21,9 +22,6 @@ interface EmailComposeSimpleProps {
 
 export function EmailComposeSimple({ onClose, onEmailSent, replyTo }: EmailComposeSimpleProps) {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    senderEmail: '',
     to: replyTo?.to || '',
     cc: '',
     bcc: '',
@@ -31,32 +29,64 @@ export function EmailComposeSimple({ onClose, onEmailSent, replyTo }: EmailCompo
     text: '',
     html: '',
   });
+  const [credentials, setCredentials] = useState<{
+    username: string;
+    password: string;
+    senderEmail: string;
+  } | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Load credentials from active IMAP session
+  useEffect(() => {
+    try {
+      // Get current credentials from IMAP client (includes password from active session)
+      const currentCredentials = emailApi.getCurrentCredentials();
+      if (currentCredentials && currentCredentials.password) {
+        setCredentials({
+          username: currentCredentials.username,
+          password: currentCredentials.password,
+          senderEmail: currentCredentials.emailAddress,
+        });
+      } else {
+        setError('Email session not active. Please login first.');
+      }
+    } catch (err) {
+      console.error('Failed to load email credentials:', err);
+      setError('Failed to load email credentials. Please login again.');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
     setError(null);
 
-    if (!formData.senderEmail) {
-      setError('Please enter your actual email address');
+    if (!credentials) {
+      setError('Email credentials not available. Please login first.');
+      setSending(false);
+      return;
+    }
+
+    if (!credentials.senderEmail) {
+      setError('Sender email address not found in credentials.');
+      setSending(false);
       return;
     }
 
     try {
       const smtpAuthConfig: SMTPAuthRequest = {
-        username: formData.username,
-        password: formData.password,
+        username: credentials.username,
+        password: credentials.password,
         host: 'mail.rwth-aachen.de',
         port: 587,
         secure: false, // Use STARTTLS for port 587
-        senderEmail: formData.senderEmail,
+        senderEmail: credentials.senderEmail,
       };
 
       const emailOptions: SMTPSendOptions = {
-        password: formData.password,
+        password: credentials.password,
         to: formData.to.split(',').map(email => email.trim()).filter(Boolean),
         cc: formData.cc ? formData.cc.split(',').map(email => email.trim()).filter(Boolean) : undefined,
         bcc: formData.bcc ? formData.bcc.split(',').map(email => email.trim()).filter(Boolean) : undefined,
@@ -108,45 +138,14 @@ export function EmailComposeSimple({ onClose, onEmailSent, replyTo }: EmailCompo
             </Button>
           )}
         </CardTitle>
+        {credentials && (
+          <div className="text-sm text-gray-600">
+            Sending from: {credentials.senderEmail}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="username">Login Username *</Label>
-              <Input
-                id="username"
-                type="email"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="ab123456@rwth-aachen.de"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Email Password *</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Enter your email password"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="senderEmail">Your Actual Email Address *</Label>
-            <Input
-              id="senderEmail"
-              type="email"
-              value={formData.senderEmail}
-              onChange={(e) => handleInputChange('senderEmail', e.target.value)}
-              placeholder="max.mustermann@rwth-aachen.de (your real email address)"
-              required
-            />
-          </div>
 
           <div>
             <Label htmlFor="to">To *</Label>
@@ -206,16 +205,6 @@ export function EmailComposeSimple({ onClose, onEmailSent, replyTo }: EmailCompo
             />
           </div>
 
-          <div>
-            <Label htmlFor="html">HTML Content (Optional)</Label>
-            <Textarea
-              id="html"
-              value={formData.html}
-              onChange={(e) => handleInputChange('html', e.target.value)}
-              placeholder="<p>HTML version of your message (optional)</p>"
-              rows={4}
-            />
-          </div>
 
           {error && (
             <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
@@ -224,8 +213,8 @@ export function EmailComposeSimple({ onClose, onEmailSent, replyTo }: EmailCompo
           )}
 
           <div className="flex justify-end space-x-2">
-            <Button type="submit" disabled={sending}>
-              {sending ? 'Sending...' : 'Send Email'}
+            <Button type="submit" disabled={sending || !credentials}>
+              {sending ? 'Sending...' : !credentials ? 'Loading credentials...' : 'Send Email'}
             </Button>
           </div>
         </form>

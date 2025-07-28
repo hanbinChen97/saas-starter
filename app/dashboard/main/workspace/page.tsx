@@ -14,7 +14,7 @@ export default function WorkspacePage() {
           <p className="text-sm text-gray-600 mt-1">Manage your email workflow and productivity</p>
         </div>
         <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-          <Link href="/dashboard/main/emails">
+          <Link href="/email">
             <Mail className="h-4 w-4 mr-2" />
             Open Emails
           </Link>
@@ -36,7 +36,7 @@ export default function WorkspacePage() {
               and manage your communication workflow with EmAilX's intelligent features.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link href="/dashboard/main/emails" className="block">
+              <Link href="/email" className="block">
                 <div className="border border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
                   <Mail className="h-8 w-8 mx-auto mb-2 text-blue-500" />
                   <p className="text-sm font-medium text-gray-900 mb-1">Connect Email Account</p>
@@ -68,7 +68,7 @@ export default function WorkspacePage() {
             <CardContent>
               <div className="space-y-3">
                 <Button asChild variant="outline" className="w-full justify-start">
-                  <Link href="/dashboard/main/emails">
+                  <Link href="/email">
                     <Mail className="h-4 w-4 mr-2" />
                     Manage Emails
                   </Link>

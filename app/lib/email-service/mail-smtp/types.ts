@@ -17,10 +17,10 @@ export interface SMTPSendOptions {
 }
 
 export interface SMTPAuthRequest {
-  username: string; // Login username (e.g., ab123456@rwth-aachen.de)
+  username: string; // SMTP login username (e.g., yw612241@rwth-aachen.de)
   password: string;
   host: string;
   port: number;
   secure: boolean;
-  senderEmail?: string; // Actual email address for sending (e.g., max.mustermann@rwth-aachen.de)
+  senderEmail?: string; // Display email address for From field (e.g., hanbin.chen@rwth-aachen.de)
 }

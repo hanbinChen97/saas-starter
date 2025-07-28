@@ -6,9 +6,9 @@ export interface SMTPConfig {
   host: string;
   port: number;
   secure: boolean;
-  username: string; // Login username (e.g., ab123456@rwth-aachen.de)
+  username: string; // SMTP login username (e.g., yw612241@rwth-aachen.de)
   password: string;
-  senderEmail?: string; // Actual email address for sending (e.g., max.mustermann@rwth-aachen.de)
+  senderEmail?: string; // Display email address for From field (e.g., hanbin.chen@rwth-aachen.de)
 }
 
 export class SMTPService {
@@ -21,17 +21,36 @@ export class SMTPService {
 
   async connect(): Promise<void> {
     try {
-      this.transporter = nodemailer.createTransport({
+      const transporterConfig = {
         host: this.config.host,
         port: this.config.port,
         secure: false, // false for port 587 with STARTTLS
+        requireTLS: true, // Require STARTTLS for RWTH
         auth: {
           user: this.config.username,
           pass: this.config.password,
         },
         debug: true,
         logger: true,
-      });
+        tls: {
+          // Accept self-signed certificates (if needed for RWTH)
+          rejectUnauthorized: false
+        }
+      };
+
+      // Output all transporter parameters for debugging
+      console.log('=== SMTP Transporter Configuration ===');
+      console.log('Host:', transporterConfig.host);
+      console.log('Port:', transporterConfig.port);
+      console.log('Secure:', transporterConfig.secure);
+      console.log('Username:', transporterConfig.auth.user);
+      console.log('Password length:', transporterConfig.auth.pass.length);
+      console.log('Password (first 3 chars):', transporterConfig.auth.pass.substring(0, 3) + '***');
+      console.log('Debug:', transporterConfig.debug);
+      console.log('Logger:', transporterConfig.logger);
+      console.log('=== End Configuration ===');
+
+      this.transporter = nodemailer.createTransport(transporterConfig);
 
       // Verify connection
       await this.transporter.verify();
@@ -52,8 +71,9 @@ export class SMTPService {
       throw new Error('SMTP service not connected');
     }
 
-    console.log('Sending email with username:', this.config.username);
-    console.log('Raw senderEmail config:', this.config.senderEmail);
+    console.log('=== SMTP Email Sending Debug ===');
+    console.log('SMTP Auth Username (for login):', this.config.username);
+    console.log('Sender Email Address (for From field):', this.config.senderEmail);
     console.log('Using sender email:', this.config.senderEmail || this.config.username);
     
     // Use senderEmail if provided, otherwise fall back to username
@@ -73,8 +93,19 @@ export class SMTPService {
     
     const pureEmailAddress = extractEmailAddress(senderAddress);
     
-    // Use proper sender format
-    const fromFormat = senderAddress.includes('<') ? senderAddress : `Max Mustermann <${senderAddress}>`;
+    // Use proper sender format - extract display name from email address
+    let fromFormat: string;
+    if (senderAddress.includes('<')) {
+      fromFormat = senderAddress;
+    } else {
+      // Extract name from email address (e.g., hanbin.chen@rwth-aachen.de -> Hanbin Chen)
+      const localPart = senderAddress.split('@')[0];
+      const nameParts = localPart.split('.');
+      const displayName = nameParts.map(part => 
+        part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      ).join(' ');
+      fromFormat = `${displayName} <${senderAddress}>`;
+    }
     const envelopeFrom = extractEmailAddress(fromFormat);
     
     const mailOptions = {

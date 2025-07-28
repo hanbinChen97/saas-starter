@@ -97,7 +97,8 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
   
   const moduleRedirectMap: Record<string, string> = {
     'dashboard': '/dashboard/main',
-    'superc': '/superc/main'
+    'superc': '/superc/main',
+    'email': '/email/imaplogin'
   };
 
   if (redirectTo === 'checkout') {
@@ -230,7 +231,8 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   
   const moduleRedirectMap: Record<string, string> = {
     'dashboard': '/dashboard/main',
-    'superc': '/superc/main'
+    'superc': '/superc/main',
+    'email': '/email/imaplogin'
   };
 
   if (redirectTo === 'checkout') {

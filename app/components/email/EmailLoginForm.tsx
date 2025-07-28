@@ -99,7 +99,7 @@ export function EmailLoginForm({ onLogin, isLoading = false, error, connectingSt
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="emailAddress">Your Email Address （必填）</Label>
+              <Label htmlFor="emailAddress">Your Email Address *</Label>
               <Input
                 id="emailAddress"
                 type="email"
@@ -110,49 +110,6 @@ export function EmailLoginForm({ onLogin, isLoading = false, error, connectingSt
                 disabled={isLoading || !!connectingStatus}
               />
               <p className="text-xs text-gray-500">This will be used as the sender address for outgoing emails</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="host">IMAP Server</Label>
-                <Input
-                  id="host"
-                  type="text"
-                  value={credentials.host}
-                  onChange={(e) => handleInputChange('host', e.target.value)}
-                  placeholder="mail.server.com"
-                  required
-                  disabled={isLoading || !!connectingStatus}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="port">Port</Label>
-                <Input
-                  id="port"
-                  type="number"
-                  value={credentials.port}
-                  onChange={(e) => handleInputChange('port', parseInt(e.target.value) || 993)}
-                  placeholder="993"
-                  required
-                  disabled={isLoading || !!connectingStatus}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="encryption">Encryption</Label>
-              <select
-                id="encryption"
-                value={credentials.encryption}
-                onChange={(e) => handleInputChange('encryption', e.target.value as 'SSL' | 'TLS' | 'NONE')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading || !!connectingStatus}
-              >
-                <option value="SSL">SSL (Recommended)</option>
-                <option value="TLS">TLS</option>
-                <option value="NONE">None (Not Recommended)</option>
-              </select>
             </div>
 
             <Button 
@@ -172,10 +129,9 @@ export function EmailLoginForm({ onLogin, isLoading = false, error, connectingSt
           </form>
 
           <div className="mt-4 p-3 text-xs text-gray-600 bg-gray-50 rounded-md">
-            <p className="font-medium mb-1">Common IMAP Settings:</p>
-            <p>• Gmail: imap.gmail.com:993 (SSL)</p>
-            <p>• Outlook: outlook.office365.com:993 (SSL)</p>
-            <p>• RWTH Aachen: mail.rwth-aachen.de:993 (SSL)</p>
+            <p className="font-medium mb-1">Connection Settings:</p>
+            <p>• Server: mail.rwth-aachen.de:993 (SSL)</p>
+            <p>• Preconfigured for RWTH Aachen University</p>
           </div>
         </CardContent>
       </Card>

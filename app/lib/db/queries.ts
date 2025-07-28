@@ -1,7 +1,7 @@
 import { desc, and, eq, isNull, lt, count } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users, appointmentProfiles } from './schema';
-import { cookies } from 'next/headers';
 import { verifyToken, updateUserActivity } from '@/app/lib/auth/session';
 
 export async function getUser() {

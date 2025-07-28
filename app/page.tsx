@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
-import { LayoutDashboard, Search } from 'lucide-react';
+import { Mail, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -19,21 +19,21 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-          {/* Dashboard Card */}
+          {/* Email Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-            <Link href="/dashboard">
+            <Link href="/email">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
-                  <LayoutDashboard className="h-8 w-8 text-blue-600" />
+                  <Mail className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl">Dashboard</CardTitle>
+                <CardTitle className="text-xl">Email Center</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-gray-600 mb-6">
-                  Access your main dashboard with team management, settings, and analytics
+                  Access your email management system with IMAP integration and advanced features
                 </p>
                 <Button className="w-full" variant="default">
-                  Enter Dashboard
+                  Enter Email
                 </Button>
               </CardContent>
             </Link>

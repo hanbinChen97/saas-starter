@@ -8,6 +8,7 @@ import { useAIReply } from '@/app/hooks/useAIReply';
 import { ChatInterface } from './ChatInterface';
 import { sendEmailAction } from '@/app/lib/email-service/mail-smtp/actions';
 import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/lib/email-service/mail-smtp/types';
+import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
 
 interface EmailViewProps {
   email: EmailMessage | null;
@@ -30,11 +31,29 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [replyStatus, setReplyStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [showAuthForm, setShowAuthForm] = useState(false);
-  const [authCredentials, setAuthCredentials] = useState({ username: '', password: '', senderEmail: '' });
-  const [needPassword, setNeedPassword] = useState(false);
-  const [tempPassword, setTempPassword] = useState('');
+  const [credentials, setCredentials] = useState<{
+    username: string;
+    password: string;
+    senderEmail: string;
+  } | null>(null);
   const { getEmailBody } = useMailCache();
+  
+  // Load credentials from active IMAP session
+  useEffect(() => {
+    try {
+      // Get current credentials from IMAP client (includes password from active session)
+      const currentCredentials = emailApi.getCurrentCredentials();
+      if (currentCredentials && currentCredentials.password) {
+        setCredentials({
+          username: currentCredentials.username,
+          password: currentCredentials.password,
+          senderEmail: currentCredentials.emailAddress,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load email credentials:', err);
+    }
+  }, []);
   
   // AI Reply functionality
   const {
@@ -56,10 +75,6 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
     setShowReply(false);
     setReplyText('');
     setReplyStatus(null);
-    setShowAuthForm(false);
-    setNeedPassword(false);
-    setTempPassword('');
-    setAuthCredentials({ username: '', password: '', senderEmail: '' });
     resetReplyState();
     
     // Notify parent that we're no longer replying
@@ -119,18 +134,8 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
       return;
     }
 
-    // If user credentials are available, ask for password only
-    if (userCredentials) {
-      setNeedPassword(true);
-    } else {
-      // Show auth form to collect credentials
-      setShowAuthForm(true);
-    }
-  };
-
-  const handleSendWithUserCredentials = async () => {
-    if (!email || !replyText.trim() || !userCredentials || !tempPassword.trim()) {
-      setReplyStatus({ type: 'error', message: 'Missing required information' });
+    if (!credentials) {
+      setReplyStatus({ type: 'error', message: 'Email credentials not found. Please login first.' });
       return;
     }
 
@@ -139,16 +144,16 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
 
     try {
       const smtpConfig: SMTPAuthRequest = {
-        username: userCredentials.username,
-        password: tempPassword,
+        username: credentials.username,
+        password: credentials.password,
         host: 'mail.rwth-aachen.de',
         port: 587,
         secure: false,
-        senderEmail: userCredentials.emailAddress,
+        senderEmail: credentials.senderEmail,
       };
 
       const emailOptions: SMTPSendOptions = {
-        password: tempPassword,
+        password: credentials.password,
         to: [email.from.address],
         subject: `Re: ${email.subject}`,
         text: replyText,
@@ -158,73 +163,26 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
 
       if (result.success) {
         setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
-        setTempPassword('');
-        setNeedPassword(false);
         // Auto-close reply after successful send
         setTimeout(() => {
           setShowReply(false);
+          setReplyText('');
           setReplyStatus(null);
-          onReplyToggle?.(false);
+          if (onReplyToggle) {
+            onReplyToggle(false);
+          }
         }, 2000);
       } else {
         setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
       }
     } catch (error) {
-      console.error('Error sending reply with user credentials:', error);
-      setReplyStatus({ type: 'error', message: 'Failed to send reply' });
+      console.error('Failed to send reply:', error);
+      setReplyStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
     } finally {
       setSendingReply(false);
     }
   };
 
-  const handleSendWithAuth = async () => {
-    if (!email || !replyText.trim() || !authCredentials.username || !authCredentials.password || !authCredentials.senderEmail) {
-      setReplyStatus({ type: 'error', message: 'Please fill in all required fields' });
-      return;
-    }
-
-    setSendingReply(true);
-    setReplyStatus(null);
-
-    try {
-      const smtpConfig: SMTPAuthRequest = {
-        username: authCredentials.username,
-        password: authCredentials.password,
-        host: 'mail.rwth-aachen.de',
-        port: 587,
-        secure: false,
-        senderEmail: authCredentials.senderEmail,
-      };
-
-      const emailOptions: SMTPSendOptions = {
-        password: authCredentials.password,
-        to: [email.from.address],
-        subject: `Re: ${email.subject}`,
-        text: replyText,
-      };
-
-      const result = await sendEmailAction(smtpConfig, emailOptions);
-
-      if (result.success) {
-        setReplyStatus({ type: 'success', message: 'Reply sent successfully!' });
-        setAuthCredentials({ username: '', password: '', senderEmail: '' });
-        setShowAuthForm(false);
-        // Auto-close reply after successful send
-        setTimeout(() => {
-          setShowReply(false);
-          setReplyStatus(null);
-          onReplyToggle?.(false);
-        }, 2000);
-      } else {
-        setReplyStatus({ type: 'error', message: result.error || 'Failed to send reply' });
-      }
-    } catch (error) {
-      console.error('Error sending reply with auth:', error);
-      setReplyStatus({ type: 'error', message: 'Failed to send reply' });
-    } finally {
-      setSendingReply(false);
-    }
-  };
 
   const handleMarkAsRead = async () => {
     if (onMarkAsRead) {
@@ -438,7 +396,7 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                     <div className="flex gap-2">
                       <button 
                         onClick={handleSendReply}
-                        disabled={sendingReply || !replyText.trim()}
+                        disabled={sendingReply || !replyText.trim() || !credentials}
                         className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                       >
                         {sendingReply ? (
@@ -446,6 +404,8 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                             <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
                             Sending...
                           </>
+                        ) : !credentials ? (
+                          'Loading credentials...'
                         ) : (
                           'Send'
                         )}
@@ -465,84 +425,11 @@ export function EmailView({ email, onUpdate, onMarkAsRead, onMarkAsFlagged, onDe
                   </div>
                 </div>
 
-                {/* Auth forms for when user credentials are needed */}
-                {showAuthForm && (
-                  <div className="border-t border-gray-200 p-3 bg-gray-50 flex-shrink-0">
-                    <div className="text-xs text-gray-600 mb-2">Enter your email credentials to send:</div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <input
-                        type="email"
-                        value={authCredentials.username}
-                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, username: e.target.value }))}
-                        placeholder="Login: ab123456@rwth-aachen.de"
-                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                      <input
-                        type="password"
-                        value={authCredentials.password}
-                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, password: e.target.value }))}
-                        placeholder="Password"
-                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="email"
-                        value={authCredentials.senderEmail}
-                        onChange={(e) => setAuthCredentials(prev => ({ ...prev, senderEmail: e.target.value }))}
-                        placeholder="Your real email: max.mustermann@rwth-aachen.de (required)"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => setShowAuthForm(false)}
-                        className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSendWithAuth}
-                        disabled={!authCredentials.username || !authCredentials.password || !authCredentials.senderEmail}
-                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Send Reply
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {needPassword && (
-                  <div className="border-t border-gray-200 p-3 bg-blue-50 flex-shrink-0">
-                    <div className="text-xs text-gray-600 mb-2">
-                      Sending as: {userCredentials?.emailAddress}
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="password"
-                        value={tempPassword}
-                        onChange={(e) => setTempPassword(e.target.value)}
-                        placeholder="Enter your password to send"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendWithUserCredentials()}
-                        autoFocus
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => setNeedPassword(false)}
-                        className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSendWithUserCredentials}
-                        disabled={!tempPassword.trim()}
-                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Send Reply
-                      </button>
+                {/* Show sender info when credentials are loaded */}
+                {credentials && (
+                  <div className="border-t border-gray-200 p-2 bg-gray-50 flex-shrink-0">
+                    <div className="text-xs text-gray-600">
+                      Sending from: {credentials.senderEmail}
                     </div>
                   </div>
                 )}

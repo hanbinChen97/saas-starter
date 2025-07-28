@@ -69,14 +69,15 @@ export function useEmailAuth(): UseEmailAuthReturn {
       
       // Check if we have stored credentials (without password)
       const storedCredentials = emailApi.getStoredCredentials();
-      const hasCredentials = emailApi.isAuthenticated();
+      const hasValidSession = emailApi.isAuthenticated(); // This now checks for password too
       
-      if (hasCredentials && storedCredentials) {
-        console.log('[Auth] Found stored credentials for:', storedCredentials.username);
+      if (hasValidSession && storedCredentials) {
+        console.log('[Auth] 找到完整的会话（包含内存中的密码）:', storedCredentials.username);
         setIsAuthenticated(true);
         setCredentials(storedCredentials);
       } else {
-        console.log('[Auth] No stored credentials found');
+        console.log('[Auth] 未找到完整的会话或密码不在内存中');
+        console.log('[Auth] hasValidSession:', hasValidSession, 'storedCredentials:', !!storedCredentials);
         setIsAuthenticated(false);
       }
       

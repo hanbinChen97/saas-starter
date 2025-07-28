@@ -67,6 +67,11 @@ class EmailApiClient {
       throw new Error('Email credentials not set. Please authenticate first.');
     }
 
+    // Check if we have all required credentials
+    if (!this.credentials.username || !this.credentials.password || !this.credentials.host) {
+      throw new Error('Username, password, and host are required');
+    }
+
     const requestBody = { 
       action, 
       credentials: this.credentials,
@@ -108,8 +113,16 @@ class EmailApiClient {
     return result;
   }
 
+  // Get current credentials (including password) for email sending
+  getCurrentCredentials(): EmailCredentials | null {
+    return this.credentials;
+  }
+
   isAuthenticated(): boolean {
-    return this.credentials !== null;
+    return this.credentials !== null && 
+           !!this.credentials.username && 
+           !!this.credentials.password && 
+           !!this.credentials.host;
   }
 
   setPassword(password: string): void {

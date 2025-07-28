@@ -220,4 +220,20 @@ export class EmailCache {
   static async updateEmailFlags(emailId: string, updates: Partial<Pick<EmailMessage, 'isRead' | 'isFlagged' | 'isAnswered'>>): Promise<void> {
     await emailDB.emails.update(emailId, updates);
   }
+
+  // Replace all emails in a folder (used for full sync on login)
+  static async replaceAllEmails(emails: EmailMessage[], folder: string): Promise<void> {
+    await emailDB.transaction('rw', [emailDB.emails], async () => {
+      // Clear all emails in the specified folder
+      await emailDB.emails.where('folder').equals(folder).delete();
+      
+      // Sort emails by date (newest first) and keep only the latest 500
+      const emailsToSave = emails
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 500);
+        
+      // Cache the filtered emails
+      await this.cacheEmails(emailsToSave, folder);
+    });
+  }
 }

@@ -1,2 +1,6 @@
+password is now in browser localstorage, memory.
 
-在 emails page，添加一个按钮，清除 浏览器 indexeddb 中的数据。
+now when we compose a new email, we need to get the info, like password, email address,etc. from the browser localstorage, memory.
+
+update ui of email reply and compose email, delete the unnecessary input fields, like password, email address, etc.
+

@@ -13,8 +13,11 @@ import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
 import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/app/components/ui/dialog';
 import { emailDB } from '@/app/lib/email-service/mail-imap/database';
+import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
+import { Mail, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
-export default function MailDetailPage() {
+export default function EmailDetailPage() {
   const params = useParams();
   const router = useRouter();
   const emailId = params.id as string;
@@ -37,7 +40,10 @@ export default function MailDetailPage() {
 
   // Hydration fix: wait for client-side initialization
   const [isClient, setIsClient] = useState(false);
-  const [emailCredentials, setEmailCredentials] = useState<{ username: string; emailAddress: string } | null>(null);
+  const [emailCredentials, setEmailCredentials] = useState<{ 
+    username: string;      // Login username (e.g., yw612241@rwth-aachen.de)
+    emailAddress: string;  // Display email address (e.g., hanbin.chen@rwth-aachen.de)
+  } | null>(null);
   
   useEffect(() => {
     setIsClient(true);
@@ -46,7 +52,7 @@ export default function MailDetailPage() {
   // Check authentication and redirect if not authenticated
   useEffect(() => {
     if (isClient && !isAuthenticated && !isAuthenticating && !isValidating) {
-      router.push('/dashboard/main/mail');
+      router.push('/email/imaplogin');
     }
   }, [isClient, isAuthenticated, isAuthenticating, isValidating, router]);
 
@@ -60,7 +66,6 @@ export default function MailDetailPage() {
     loadingProgress,
     connectionError,
     error,
-    hasMore,
     refreshEmails, 
     syncEmails, 
     loadMoreEmails,
@@ -72,29 +77,71 @@ export default function MailDetailPage() {
     smartSync
   } = useMailCache({ 
     folder: currentFolder, 
-    limit: 200,
+    limit: 50, // Start with 50, will auto-load to 200 in background
     autoSync: isAuthenticated && !isValidating, // Only auto-sync when authenticated and not validating
     syncInterval: 2 * 60 * 1000, // 2 minutes
     isAuthenticated: isAuthenticated && isClient && !isValidating, // Pass authentication state
     progressiveLoading: true // 启用渐进式加载
   });
 
-  // Decode email address from URL ID
-  const decodeEmailId = (id: string): string => {
-    // This is a simplified decode - in real implementation, you'd need to store the full email mapping
-    return `${id}@rwth-aachen.de`; // Assuming RWTH domain, adjust as needed
+  // Decode user credentials from URL ID
+  const decodeUserCredentials = (id: string): { username: string; emailAddress: string } => {
+    // Map URL ID to both login username and display email address
+    // This mapping should be maintained for each user
+    
+    if (id === 'hanbinchen') {
+      return {
+        username: 'yw612241@rwth-aachen.de',        // Login username
+        emailAddress: 'hanbin.chen@rwth-aachen.de'  // Display email address
+      };
+    }
+    
+    // For other users, you would add similar mappings
+    // For example:
+    // if (id === 'johndoe') {
+    //   return {
+    //     username: 'jd123456@rwth-aachen.de',
+    //     emailAddress: 'john.doe@rwth-aachen.de'
+    //   };
+    // }
+    
+    // Fallback: assume the ID is already a proper username
+    return {
+      username: `${id}@rwth-aachen.de`,
+      emailAddress: `${id}@rwth-aachen.de`
+    };
   };
 
   // Set email credentials based on URL ID
   useEffect(() => {
     if (isClient && isAuthenticated && emailId) {
-      const decodedEmail = decodeEmailId(emailId);
+      const credentials = decodeUserCredentials(emailId);
+      console.log('=== Email Credentials Debug ===');
+      console.log('Original emailId from URL:', emailId);
+      console.log('Login username:', credentials.username);
+      console.log('Display email address:', credentials.emailAddress);
+      console.log('=== End Debug ===');
+      
+      // Check if emailApi has valid credentials including password in memory
+      const hasValidSession = emailApi.isAuthenticated();
+      const storedCreds = emailApi.getStoredCredentials();
+      
+      if (!hasValidSession || !storedCreds || storedCreds.username !== credentials.username) {
+        console.log('[EmailPage] 密码未在内存中找到或会话无效，重定向到登录页面');
+        console.log('[EmailPage] hasValidSession:', hasValidSession);
+        console.log('[EmailPage] storedCreds:', storedCreds);
+        logout(); // Clear any invalid state
+        router.push('/email/imaplogin');
+        return;
+      }
+      
+      console.log('[EmailPage] 找到有效会话，密码已在内存中:', credentials.username);
       setEmailCredentials({
-        username: emailId,
-        emailAddress: decodedEmail
+        username: credentials.username,        // Login username for authentication
+        emailAddress: credentials.emailAddress // Display email address for sending
       });
     }
-  }, [isClient, isAuthenticated, emailId]);
+  }, [isClient, isAuthenticated, emailId, router]);
 
   // Filter emails based on unread only setting
   const filteredEmails = showUnreadOnly ? emails.filter(email => !email.isRead) : emails;
@@ -138,7 +185,7 @@ export default function MailDetailPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/dashboard/main/mail');
+    router.push('/email/imaplogin');
   };
 
   const handleClearIndexedDB = async () => {
@@ -177,10 +224,13 @@ export default function MailDetailPage() {
           {loading && !initialLoaded && (
             <div className="space-y-2">
               <p className="text-gray-500 text-sm">
-                优先加载前 20 封邮件，然后后台继续加载至 200 封
+                {backgroundLoading ? '后台无感知加载中 (目标 200 封)...' : '快速加载前 50 封邮件'}
               </p>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '30%'}}></div>
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                  style={{width: backgroundLoading ? '75%' : '50%'}}
+                ></div>
               </div>
             </div>
           )}
@@ -213,14 +263,18 @@ export default function MailDetailPage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden bg-gray-50">
+    <div className="h-screen w-full flex flex-col bg-gray-50 fixed inset-0">
       {/* Header */}
       <div className="border-b border-gray-200 p-3 bg-white flex-shrink-0 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Link href="/email/imaplogin" className="flex items-center text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              返回
+            </Link>
             <div>
               <h1 className="text-lg font-semibold text-gray-900">EmAilX Center</h1>
-              <p className="text-xs text-gray-500">{decodeEmailId(emailId)}</p>
+              <p className="text-xs text-gray-500">{decodeUserCredentials(emailId).emailAddress}</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-700">
@@ -273,7 +327,6 @@ export default function MailDetailPage() {
                 </DialogTitle>
                 {emailCredentials && isAuthenticated ? (
                   <EmailCompose
-                    smtpConfig={getSMTPConfig(emailCredentials.username, emailCredentials.emailAddress)}
                     replyTo={composeReplyTo}
                     onClose={() => {
                       setShowCompose(false);
@@ -332,8 +385,8 @@ export default function MailDetailPage() {
             
             <div className="text-xs text-gray-500">
               {emails.length} 封邮件
-              {initialLoaded && !loading && backgroundLoading && (
-                <span className="text-green-600 ml-1">(加载更多中...)</span>
+              {backgroundLoading && (
+                <span className="text-green-600 ml-1">(后台加载中...)</span>
               )}
             </div>
             <Button 
@@ -383,7 +436,7 @@ export default function MailDetailPage() {
       )}
 
       {/* Main Content - Split View */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="flex-1 flex min-h-0" style={{height: 'calc(100vh - 80px)'}}>
         {/* Email List Sidebar */}
         <div className={`${isEmailListCollapsed ? 'w-12' : 'w-full md:w-80 lg:w-96'} border-r border-gray-200 bg-white flex flex-col transition-all duration-300 min-h-0 flex-shrink-0`}>
           {/* Collapse Toggle Button */}
@@ -417,7 +470,8 @@ export default function MailDetailPage() {
               onEmailSelect={handleEmailSelect}
               onUpdate={handleEmailUpdate}
               onLoadMore={loadMoreEmails}
-              hasMore={hasMore}
+              backgroundLoading={backgroundLoading}
+              loadingProgress={loadingProgress}
             />
           </div>
         </div>

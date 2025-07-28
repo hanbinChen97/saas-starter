@@ -4,6 +4,7 @@ import { signToken, verifyToken, updateUserActivity, shouldRefreshSession } from
 
 const protectedRoutes = ['/dashboard/main', '/superc/main', '/superc/profile', '/email/imaplogin'];
 
+
 // Module-specific login routes mapping
 const moduleLoginRoutes: Record<string, string> = {
   '/dashboard/main': '/dashboard/login',

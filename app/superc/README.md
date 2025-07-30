@@ -1,3 +1,13 @@
-## Features
+## SupaC Main Page
 
-- Marketing landing page (`/`) with animated Terminal element
+![SupaC](../../assets/supaC/supaC.png)
+
+## SupaC Registeration Page
+![SupaC](../../assets/supaC/registeration.png)
+
+
+## SupaC Info Page
+![SupaC](../../assets/supaC/info.png)
+- Info page (`/info`) with animated Terminal element
+
+

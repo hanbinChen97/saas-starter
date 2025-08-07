@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateEmailReply } from '@/app/lib/email-ai/email-reply-service';
+import { generateEmailReply } from '@/app/email/lib/email-ai/email-reply-service';
 import { testAzureOpenAIConnection } from '@/app/lib/llm/azure-client';
-import { EmailReplyRequest, validateEmailReplyResponse } from '@/app/lib/email-ai/ai-prompt';
+import { EmailReplyRequest, validateEmailReplyResponse } from '@/app/email/lib/email-ai/ai-prompt';
 
 export async function POST(request: NextRequest) {
   try {

@@ -6,9 +6,9 @@ import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Label } from '@/app/components/ui/label';
-import { sendEmailAction } from '@/app/lib/email-service/mail-smtp/actions';
-import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/lib/email-service/mail-smtp/types';
-import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
+import { sendEmailAction } from '@/app/email/lib/email-service/mail-smtp/actions';
+import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/email/lib/email-service/mail-smtp/types';
+import { emailApi } from '@/app/email/lib/email-service/mail-imap/api-client';
 
 interface EmailComposeSimpleProps {
   onClose?: () => void;

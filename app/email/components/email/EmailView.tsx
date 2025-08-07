@@ -1,14 +1,14 @@
 'use client';
 
-import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
-import { EmailParser } from '@/app/lib/email-service/mail-imap/email-parser';
+import { EmailMessage } from '@/app/email/lib/email-service/mail-imap/types';
+import { EmailParser } from '@/app/email/lib/email-service/mail-imap/email-parser';
 import { useState, useEffect } from 'react';
-import { useMailCache } from '@/app/hooks/useMailCache';
-import { useAIReply } from '@/app/hooks/useAIReply';
+import { useMailCache } from '@/app/email/hooks/useMailCache';
+import { useAIReply } from '@/app/email/hooks/useAIReply';
 import { ChatInterface } from './ChatInterface';
-import { sendEmailAction } from '@/app/lib/email-service/mail-smtp/actions';
-import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/lib/email-service/mail-smtp/types';
-import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
+import { sendEmailAction } from '@/app/email/lib/email-service/mail-smtp/actions';
+import type { SMTPAuthRequest, SMTPSendOptions } from '@/app/email/lib/email-service/mail-smtp/types';
+import { emailApi } from '@/app/email/lib/email-service/mail-imap/api-client';
 
 interface EmailViewProps {
   email: EmailMessage | null;

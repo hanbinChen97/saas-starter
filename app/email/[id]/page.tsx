@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useMailCache } from '@/app/hooks/useMailCache';
-import { useEmailAuth } from '@/app/hooks/useEmailAuth';
-import { EmailList } from '@/app/components/email/EmailList';
-import { EmailView } from '@/app/components/email/EmailView';
-import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
+import { useMailCache } from '@/app/email/hooks/useMailCache';
+import { useEmailAuth } from '@/app/email/hooks/useEmailAuth';
+import { EmailList } from '@/app/email/components/email/EmailList';
+import { EmailView } from '@/app/email/components/email/EmailView';
+import { EmailMessage } from '@/app/email/lib/email-service/mail-imap/types';
 import { Button } from '@/app/components/ui/button';
-import { EmailCompose } from '@/app/components/email/EmailCompose';
-import { EmailComposeSimple } from '@/app/components/email/EmailComposeSimple';
-import { getSMTPConfig } from '@/app/hooks/useSMTPConfig';
+import { EmailCompose } from '@/app/email/components/email/EmailCompose';
+import { EmailComposeSimple } from '@/app/email/components/email/EmailComposeSimple';
+import { getSMTPConfig } from '@/app/email/hooks/useSMTPConfig';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/app/components/ui/dialog';
-import { emailDB } from '@/app/lib/email-service/mail-imap/database';
-import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
+import { emailDB } from '@/app/email/lib/email-service/mail-imap/database';
+import { emailApi } from '@/app/email/lib/email-service/mail-imap/api-client';
 import { Mail, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 

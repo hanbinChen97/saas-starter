@@ -60,13 +60,14 @@ This is a Next.js SaaS starter with two main applications:
 - Trial period support (14 days default)
 
 #### Project Structure Conventions
+- **Subproject Organization**: Code organized into `app/email/` and `app/supac/` subprojects
 - **Server Actions**: Form submissions and mutations
 - **Route Groups**: `(dashboard)` and `(login)` for layout organization  
-- **API Routes**: RESTful endpoints in `app/api/`
-- **Component Organization**: UI components in `app/components/ui/` using shadcn/ui
+- **API Routes**: RESTful endpoints - shared in `app/api/`, project-specific in `app/{project}/api/`
+- **Component Organization**: Shared UI components in `app/components/ui/`, project-specific in `app/{project}/components/`
 - **Type Safety**: TypeScript with Zod validation throughout
-- **Library Code**: All utilities and services in `app/lib/`
-- **Custom Hooks**: React hooks in `app/hooks/`
+- **Library Code**: Shared utilities in `app/lib/`, project-specific in `app/{project}/lib/`
+- **Custom Hooks**: Shared hooks would be in `app/hooks/`, project-specific in `app/{project}/hooks/`
 - **App Directory Structure**: Following Next.js 13+ App Router best practices
 
 ### Key Files and Locations
@@ -79,22 +80,21 @@ This is a Next.js SaaS starter with two main applications:
 - **Database Queries**: `app/lib/db/queries.ts`
 
 ### Email Management System (Outlook-style Layout)
-- **Email Components**: `app/components/email/` - Modern split-view email interface
+- **Email Components**: `app/email/components/email/` - Modern split-view email interface
   - `EmailList.tsx` - Sidebar email list with compact items
   - `EmailListItem.tsx` - Individual email item in the sidebar
   - `EmailView.tsx` - Right panel for viewing selected email content
   - `EmailCard.tsx` - Legacy full-width email card (kept for compatibility)
-- **Email Service**: `app/lib/email/email-service.ts` - IMAP email service implementation using **node-imap**
+- **Email Service**: `app/email/lib/email-service/` - IMAP email service implementation using **node-imap**
   
-- **Email Types**: `app/lib/email/types.ts` - Type definitions for email messages, folders, and configuration
-- **Email Parser**: `app/lib/email/email-parser.ts` - Utility for parsing and processing IMAP email data
-- **Email Actions**: `app/lib/email/actions.ts` - Server actions for email operations (fetch, mark as read/unread, delete)
-- **Email Hook**: `app/hooks/useEmails.ts` - React hook for managing email state with real IMAP integration
-- **Email Page**: `/dashboard/emails` - Outlook-style split view interface
-  - Left panel: Compact email list (1/3 width)
-  - Right panel: Email content viewer (2/3 width)
-  - Header: Connection status, folder selection, and controls
-- **Navigation**: Added "Emails" tab to dashboard sidebar navigation
+- **Email Types**: `app/email/lib/email-service/mail-imap/types.ts` - Type definitions for email messages, folders, and configuration
+- **Email Parser**: `app/email/lib/email-service/mail-imap/email-parser.ts` - Utility for parsing and processing IMAP email data
+- **Email Actions**: `app/email/lib/email-service/mail-imap/actions.ts` - Server actions for email operations (fetch, mark as read/unread, delete)
+- **Email Hooks**: `app/email/hooks/` - React hooks for managing email state with real IMAP integration
+- **Email Pages**: `/email/` - Standalone email application routes
+  - Email landing page and authentication
+  - IMAP login and email viewing interface
+- **Email API**: `app/email/api/` - Email-specific API endpoints
 
 #### Email Interface Features
 - ✅ **Split View Layout**: Outlook-style left sidebar + right content panel
@@ -136,6 +136,34 @@ This is a Next.js SaaS starter with two main applications:
 
 使用 react 的 server action 来实现 api 的调用。
 
+
+### SuperC Automation System (SupaC)
+- **SuperC Components**: `app/supac/components/` - SuperC-specific UI components
+- **SuperC Pages**: `/supac/` - SuperC automation application routes
+  - SuperC landing page and user registration
+  - Profile management and automation settings
+  - Main application dashboard for SuperC booking
+- **SuperC API**: `app/supac/api/` - SuperC-specific API endpoints
+- **SuperC Hooks**: `app/supac/hooks/` - React hooks for SuperC functionality (ready for future use)
+- **SuperC Libraries**: `app/supac/lib/` - SuperC-specific utilities and services (ready for future use)
+
+#### SuperC Features
+- ✅ Automatic SuperC appointment booking system
+- ✅ User registration and profile management
+- ✅ Integration with shared authentication system
+- ✅ Terminal-style interface for automation status
+- ✅ Standalone application with its own routing
+
+### Project Organization
+The application is now organized into two main subprojects:
+1. **Email Project** (`/email`) - Complete email management system with IMAP/SMTP integration
+2. **SuperC Project** (`/supac`) - SuperC appointment automation system
+
+Both projects share common infrastructure:
+- Authentication system (`app/lib/auth/`)
+- Database layer (`app/lib/db/`)
+- Payment integration (`app/lib/payments/`)
+- Shared UI components (`app/components/ui/`)
 
 llm 使用 azure openai 的 gpt-4.1 模型，argument 在 .env 中配置，参考 .env.example 文件。
 

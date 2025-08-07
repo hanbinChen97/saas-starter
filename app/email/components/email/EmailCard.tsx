@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EmailMessage } from '@/app/lib/email-service/mail-imap/types';
-import { EmailParser } from '@/app/lib/email-service/mail-imap/email-parser';
+import { EmailMessage } from '@/app/email/lib/email-service/mail-imap/types';
+import { EmailParser } from '@/app/email/lib/email-service/mail-imap/email-parser';
 // Legacy email actions disabled for security - use authenticated email interface instead
 
 interface EmailCardProps {

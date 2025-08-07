@@ -31,7 +31,7 @@ export default function SupaCLandingPage() {
               </p>
               <div className="mt-8">
                 <Link 
-                  href={user ? "/superc/main" : "/superc/login"}
+                  href={user ? "/supac/main" : "/supac/login"}
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors"
                 >
                   {user ? "进入系统" : "开始使用"}

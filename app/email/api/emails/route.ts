@@ -4,7 +4,7 @@ import {
   executeEmailOperation, 
   validateEmailCredentials,
   EmailAuthCredentials 
-} from '@/app/lib/email-service/mail-imap/email-auth';
+} from '@/app/email/lib/email-service/mail-imap/email-auth';
 
 export async function POST(request: NextRequest) {
   try {

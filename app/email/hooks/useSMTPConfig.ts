@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { SMTPAuthRequest } from '@/app/lib/email-service/mail-smtp/types';
+import type { SMTPAuthRequest } from '@/app/email/lib/email-service/mail-smtp/types';
 
 interface UseSMTPConfigProps {
   username?: string;

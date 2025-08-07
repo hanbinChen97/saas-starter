@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { EmailMessage, EmailFolder } from '@/app/lib/email-service/mail-imap/types';
-import { EmailCache, emailDB } from '@/app/lib/email-service/mail-imap/database';
-import { emailApi } from '@/app/lib/email-service/mail-imap/api-client';
+import { EmailMessage, EmailFolder } from '@/app/email/lib/email-service/mail-imap/types';
+import { EmailCache, emailDB } from '@/app/email/lib/email-service/mail-imap/database';
+import { emailApi } from '@/app/email/lib/email-service/mail-imap/api-client';
 
 interface UseMailCacheOptions {
   folder?: string;

@@ -7,8 +7,8 @@ import {
   cleanupTestEmails,
   checkTestEnvironment 
 } from '@/tests/helpers/email-test-utils'
-import type { ImapEmailService } from '@/app/lib/email-service/mail-imap/email-service'
-import type { SMTPService } from '@/app/lib/email-service/mail-smtp/smtp-service'
+import type { ImapEmailService } from '@/app/email/lib/email-service/mail-imap/email-service'
+import type { SMTPService } from '@/app/email/lib/email-service/mail-smtp/smtp-service'
 
 describe('邮件完整流程集成测试', () => {
   let imapService: ImapEmailService

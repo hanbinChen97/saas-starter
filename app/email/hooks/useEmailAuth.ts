@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { emailApi, EmailCredentials, AuthResult } from '@/app/lib/email-service/mail-imap/api-client';
+import { emailApi, EmailCredentials, AuthResult } from '@/app/email/lib/email-service/mail-imap/api-client';
 
 interface UseEmailAuthReturn {
   isAuthenticated: boolean;

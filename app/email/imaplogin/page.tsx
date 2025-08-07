@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { EmailLoginForm, EmailCredentials } from '@/app/components/email/EmailLoginForm';
-import { useEmailAuth } from '@/app/hooks/useEmailAuth';
+import { EmailLoginForm, EmailCredentials } from '@/app/email/components/email/EmailLoginForm';
+import { useEmailAuth } from '@/app/email/hooks/useEmailAuth';
 import { Mail } from 'lucide-react';
 import Link from 'next/link';
 

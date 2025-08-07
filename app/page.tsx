@@ -41,7 +41,7 @@ export default function HomePage() {
 
           {/* SuperC Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-            <Link href="/superc">
+            <Link href="/supac">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
                   <Search className="h-8 w-8 text-orange-600" />

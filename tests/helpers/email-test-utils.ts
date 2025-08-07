@@ -1,7 +1,7 @@
-import { ImapEmailService } from '@/app/lib/email-service/mail-imap/email-service'
-import { SMTPService } from '@/app/lib/email-service/mail-smtp/smtp-service'
-import type { EmailConnectionConfig } from '@/app/lib/email-service/mail-imap/types'
-import type { SMTPConfig } from '@/app/lib/email-service/mail-smtp/smtp-service'
+import { ImapEmailService } from '@/app/email/lib/email-service/mail-imap/email-service'
+import { SMTPService } from '@/app/email/lib/email-service/mail-smtp/smtp-service'
+import type { EmailConnectionConfig } from '@/app/email/lib/email-service/mail-imap/types'
+import type { SMTPConfig } from '@/app/email/lib/email-service/mail-smtp/smtp-service'
 
 // 测试邮件配置
 export const getTestEmailConfig = (): EmailConnectionConfig => {

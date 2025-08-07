@@ -4,7 +4,7 @@ import {
   testConnection, 
   checkTestEnvironment 
 } from '@/tests/helpers/email-test-utils'
-import type { ImapEmailService } from '@/app/lib/email-service/mail-imap/email-service'
+import type { ImapEmailService } from '@/app/email/lib/email-service/mail-imap/email-service'
 
 describe('IMAP 连接集成测试', () => {
   let imapService: ImapEmailService
@@ -97,7 +97,7 @@ describe('IMAP 连接集成测试', () => {
 
   it('应该能够处理错误的连接信息', async () => {
     // 创建错误配置的服务
-    const { ImapEmailService } = await import('@/app/lib/email-service/mail-imap/email-service')
+    const { ImapEmailService } = await import('@/app/email/lib/email-service/mail-imap/email-service')
     const wrongService = new ImapEmailService({
       host: 'wrong-server.example.com',
       port: 993,
@@ -117,7 +117,7 @@ describe('IMAP 连接集成测试', () => {
 
   it('应该能够处理连接超时', async () => {
     // 创建超时配置的服务
-    const { ImapEmailService } = await import('@/app/lib/email-service/mail-imap/email-service')
+    const { ImapEmailService } = await import('@/app/email/lib/email-service/mail-imap/email-service')
     const timeoutService = new ImapEmailService({
       host: process.env.RWTH_MAIL_SERVER || '',
       port: parseInt(process.env.RWTH_MAIL_SERVER_IMAP_PORT || '993'),

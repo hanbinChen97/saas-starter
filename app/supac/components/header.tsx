@@ -32,7 +32,7 @@ function UserMenu() {
   if (!user) {
     return (
       <Button asChild className="bg-orange-600 hover:bg-orange-700">
-        <Link href="/superc/login">登录</Link>
+        <Link href="/supac/login">登录</Link>
       </Button>
     );
   }
@@ -49,7 +49,7 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col gap-1">
         <DropdownMenuItem className="cursor-pointer">
-          <Link href="/superc/profile" className="flex w-full items-center">
+          <Link href="/supac/profile" className="flex w-full items-center">
             <User className="mr-2 h-3 w-3" />
             <span>个人资料</span>
           </Link>
@@ -71,7 +71,7 @@ export default function SuperCHeader() {
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/superc" className="flex items-center">
+        <Link href="/supac" className="flex items-center">
           <div className="h-8 w-8 bg-orange-500 rounded-full flex items-center justify-center">
             <Search className="h-4 w-4 text-white" />
           </div>

@@ -100,7 +100,7 @@ export default function ProfilePage() {
                 您还没有创建预约档案。请先完成预约信息填写。
               </p>
               <a
-                href="/superc/main"
+                href="/supac/main"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
               >
                 创建预约档案

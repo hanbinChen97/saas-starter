@@ -4,7 +4,7 @@ import {
   testConnection, 
   checkTestEnvironment 
 } from '@/tests/helpers/email-test-utils'
-import type { SMTPService } from '@/app/lib/email-service/mail-smtp/smtp-service'
+import type { SMTPService } from '@/app/email/lib/email-service/mail-smtp/smtp-service'
 
 describe('SMTP 连接集成测试', () => {
   let smtpService: SMTPService
@@ -51,7 +51,7 @@ describe('SMTP 连接集成测试', () => {
 
   it('应该能够处理错误的 SMTP 配置', async () => {
     // 创建错误配置的 SMTP 服务
-    const { SMTPService } = await import('@/app/lib/email-service/mail-smtp/smtp-service')
+    const { SMTPService } = await import('@/app/email/lib/email-service/mail-smtp/smtp-service')
     const wrongSMTPService = new SMTPService({
       host: 'wrong-smtp.example.com',
       port: 587,
@@ -69,7 +69,7 @@ describe('SMTP 连接集成测试', () => {
   })
 
   it('应该能够处理不同的端口配置', async () => {
-    const { SMTPService } = await import('@/app/lib/email-service/mail-smtp/smtp-service')
+    const { SMTPService } = await import('@/app/email/lib/email-service/mail-smtp/smtp-service')
     
     // 测试标准 SMTP 端口 587 (STARTTLS)
     const smtp587Service = new SMTPService({
@@ -94,7 +94,7 @@ describe('SMTP 连接集成测试', () => {
   })
 
   it('应该能够检测身份认证问题', async () => {
-    const { SMTPService } = await import('@/app/lib/email-service/mail-smtp/smtp-service')
+    const { SMTPService } = await import('@/app/email/lib/email-service/mail-smtp/smtp-service')
     
     // 使用错误密码测试身份认证
     const authFailService = new SMTPService({
@@ -124,7 +124,7 @@ describe('SMTP 连接集成测试', () => {
   })
 
   it('应该能够处理 TLS/SSL 连接问题', async () => {
-    const { SMTPService } = await import('@/app/lib/email-service/mail-smtp/smtp-service')
+    const { SMTPService } = await import('@/app/email/lib/email-service/mail-smtp/smtp-service')
     
     // 测试强制 SSL 连接（可能会失败，取决于服务器配置）
     const sslService = new SMTPService({

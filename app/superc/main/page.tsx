@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createUserProfile } from './actions';
 import SuperCHeader from '../components/header';
+import Marquee from 'react-fast-marquee';
 
 export default function SuperCPage() {
   const router = useRouter();
@@ -98,6 +99,17 @@ export default function SuperCPage() {
     <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
       {/* Header */}
       <SuperCHeader />
+      
+      {/* 感谢打赏者滚动条 */}
+      <Marquee
+        pauseOnHover={true}
+        gradient={false}
+        speed={30}
+        className="bg-orange-100 py-2 text-orange-800 font-medium"
+      >
+        <span className="mx-8">💰 感谢 @FeNGgUnC 的打赏支持！</span>
+        <span className="mx-8">💰 感谢 @梨园摘樱桃 的打赏支持！</span>
+      </Marquee>
 
       {/* Main Content - Scrollable */}
       <main className="flex-1 overflow-y-auto">
@@ -106,6 +118,38 @@ export default function SuperCPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-4">SuperC Anmeldung</h1>
             <p className="text-lg text-gray-600">Füllen Sie das Formular aus, um sich für SuperC zu registrieren</p>
           </div>
+
+          {/* 打赏卡片 */}
+          <Card className="mb-8 bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="flex justify-center mb-3">
+                  <Coffee className="h-8 w-8 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  喜欢我们的服务吗？
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  如果您对我们的 SupaC 服务满意，欢迎请我们喝杯咖啡！☕
+                </p>
+                <Button 
+                  asChild
+                  variant="outline"
+                  className="bg-white hover:bg-orange-50 border-orange-300 text-orange-700 hover:text-orange-800"
+                >
+                  <a 
+                    href="https://www.paypal.com/paypalme/SupaCAachen?locale.x=de_DE&country.x=DE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                  >
+                    <Coffee className="h-4 w-4 mr-2" />
+                    请我们喝咖啡
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Registration Form */}
           <Card>
@@ -178,7 +222,7 @@ export default function SuperCPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefonnummer *</Label>
+                  <Label htmlFor="phone">Telefonnummer * (015712344321)</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -266,37 +310,6 @@ export default function SuperCPage() {
             </CardContent>
           </Card>
 
-          {/* 打赏卡片 */}
-          <Card className="mt-8 bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <Coffee className="h-8 w-8 text-orange-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  喜欢我们的服务吗？
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  如果您对我们的 SupaC 服务满意，欢迎请我们喝杯咖啡！☕
-                </p>
-                <Button 
-                  asChild
-                  variant="outline"
-                  className="bg-white hover:bg-orange-50 border-orange-300 text-orange-700 hover:text-orange-800"
-                >
-                  <a 
-                    href="https://www.paypal.com/paypalme/SupaCAachen?locale.x=de_DE&country.x=DE"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center"
-                  >
-                    <Coffee className="h-4 w-4 mr-2" />
-                    请我们喝咖啡
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
     </div>

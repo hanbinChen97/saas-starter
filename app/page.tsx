@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
-import { Mail, Search } from 'lucide-react';
+import { Mail, Search, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -17,8 +17,8 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {/* Email Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
             <Link href="/email">
@@ -34,6 +34,26 @@ export default function HomePage() {
                 </p>
                 <Button className="w-full" variant="default">
                   Enter Email
+                </Button>
+              </CardContent>
+            </Link>
+          </Card>
+
+          {/* Matrix Chat Card */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Link href="/login">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
+                  <MessageCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">Matrix Chat</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600 mb-6">
+                  Access Matrix chat with SSO authentication and real-time messaging
+                </p>
+                <Button className="w-full" variant="default">
+                  Start Chat
                 </Button>
               </CardContent>
             </Link>

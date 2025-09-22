@@ -348,7 +348,45 @@ Error: POSTGRES_URL is not defined
 - 💬 [Drizzle Discord 社区](https://discord.gg/yfjTbVXMW4)
 - 🔧 [Drizzle Studio 文档](https://orm.drizzle.team/drizzle-studio/overview)
 
-## 🚀 下一步学习
+## � 连接 Supabase（生产/预发）
+
+本项目在生产中使用 Supabase（PostgreSQL）。Drizzle 读取 `POSTGRES_URL` 来连接数据库：
+
+1) 在 Supabase 控制台创建项目后，前往 Settings → Database，复制连接字符串（推荐使用 Connection Pooler，用于 Vercel Serverless）：
+
+- 直连（Direct，默认 5432）：
+
+```
+POSTGRES_URL=postgresql://postgres:YOUR_DB_PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres?sslmode=require
+```
+
+- 连接池（Pooler，常见 6543，推荐）：
+
+```
+POSTGRES_URL=postgresql://USERNAME:YOUR_DB_PASSWORD@PROJECT_REF.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+2) 在本地 `saas-starter/.env` 和 Vercel 项目环境变量里设置 `POSTGRES_URL`。
+
+3) 将数据库结构迁移到 Supabase 并可选填充种子：
+
+```
+pnpm db:migrate
+pnpm db:seed
+```
+
+4) 可选：打开 Drizzle Studio 查看/编辑数据：
+
+```
+pnpm db:studio
+```
+
+注意：
+- `?sslmode=require` 建议始终开启。
+- 复制连接字符串时确保 `PROJECT_REF`、端口与用户名准确无误。
+- 若使用 Pooler，优先用于 Vercel 无服务器环境以降低连接数压力。
+
+## �🚀 下一步学习
 
 1. **熟悉基本查询操作**：增删改查
 2. **学习复杂关联查询**：joins, subqueries

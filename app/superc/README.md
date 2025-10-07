@@ -7,7 +7,7 @@
 
 
 ## SupaC Info Page
-![SupaC](../../assets/supaC/info.png)
+![SupaC](../../assets/supaC/waiting.png)
 - Info page (`/info`) with animated Terminal element
 
 

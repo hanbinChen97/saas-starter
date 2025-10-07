@@ -3,11 +3,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { CalendarIcon, ClockIcon, MapPinIcon, UserIcon } from 'lucide-react';
+import { CalendarIcon, ClockIcon, MapPinIcon, UserIcon, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SuperCHeader from '../components/header';
 import { AppointmentProfile } from '@/app/lib/db/schema';
 import { cancelAppointment } from '../main/actions';
+import { updateProfileEmail } from './actions';
+import { Input } from '@/app/components/ui/input';
 
 interface QueueInfo {
   position: number;
@@ -20,6 +22,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [newEmail, setNewEmail] = useState('');
+  const [updatingEmail, setUpdatingEmail] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -68,6 +72,39 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: '取消预约时发生错误。' });
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail) {
+      setMessage({ type: 'error', text: '请输入新的邮箱地址。' });
+      return;
+    }
+
+    setUpdatingEmail(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('email', newEmail);
+      const result = await updateProfileEmail({}, formData);
+      
+      if ('success' in result && result.success) {
+        setMessage({ type: 'success', text: result.message });
+        // Refresh profile data after successful update
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else if ('error' in result) {
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'error', text: result.message || '更新邮箱失败。' });
+      }
+    } catch (error) {
+      console.error('Error updating email:', error);
+      setMessage({ type: 'error', text: '更新邮箱时发生错误。' });
+    } finally {
+      setUpdatingEmail(false);
     }
   };
 
@@ -123,6 +160,8 @@ export default function ProfilePage() {
         return <Badge variant="secondary">等待中</Badge>;
       case 'booked':
         return <Badge variant="default" className="bg-green-500">已预约</Badge>;
+      case 'error':
+        return <Badge variant="destructive">错误</Badge>;
       default:
         return <Badge variant="outline">未知状态</Badge>;
     }
@@ -200,6 +239,57 @@ export default function ProfilePage() {
                   {getStatusBadge(profile.appointmentStatus)}
                 </div>
               </div>
+
+              {/* Error status - allow email update */}
+              {profile.appointmentStatus === 'error' && (
+                <div className="pt-4 border-t border-red-200 bg-red-50 -mx-6 px-6 py-4">
+                  <div className="flex items-start space-x-2 mb-4">
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-red-900 mb-1">
+                        预约出现错误
+                      </h3>
+                      <p className="text-sm text-red-700 mb-3">
+                        您的预约信息处理失败，可能是邮箱地址有误。请更新您的邮箱地址以继续。
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">
+                        当前邮箱
+                      </label>
+                      <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded border border-gray-200">
+                        {profile.email || '未设置'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1">
+                        新邮箱地址
+                      </label>
+                      <Input
+                        type="email"
+                        placeholder="请输入新的邮箱地址"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="w-full"
+                        disabled={updatingEmail}
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={handleUpdateEmail}
+                      disabled={updatingEmail || !newEmail}
+                      className="w-full bg-orange-600 hover:bg-orange-700"
+                    >
+                      {updatingEmail ? '更新中...' : '更新邮箱并恢复预约'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm font-medium text-gray-500">偏好地点</label>
                 <div className="flex items-center mt-1">
@@ -237,7 +327,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* 排队信息 */}
-          {queueInfo && (
+          {queueInfo && profile.appointmentStatus === 'waiting' && (
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center">

@@ -27,13 +27,19 @@ export const createUserProfile = validatedActionWithUser(
   createUserProfileSchema,
   async (data, formData, user) => {
     try {
-      // Check if profile with same vorname and nachname already exists
-      const profileExists = await checkExistingProfile(data.vorname, data.nachname);
+      // Check if profile with same vorname, nachname and birth date already exists
+      const profileExists = await checkExistingProfile(
+        data.vorname, 
+        data.nachname,
+        data.geburtsdatumDay,
+        data.geburtsdatumMonth,
+        data.geburtsdatumYear
+      );
       
       if (profileExists) {
         return { 
           success: false, 
-          message: 'Ein Profil mit diesem Vor- und Nachnamen existiert bereits. Doppelte Registrierungen sind nicht erlaubt.' 
+          message: 'Ein Profil mit diesem Vor- und Nachnamen sowie Geburtsdatum existiert bereits. Doppelte Registrierungen sind nicht erlaubt.' 
         };
       }
 

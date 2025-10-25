@@ -1,4 +1,4 @@
-import { desc, and, eq, isNull, lt, count } from 'drizzle-orm';
+import { desc, and, eq, isNull, lt, count, sql } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users, appointmentProfiles } from './schema';
@@ -173,13 +173,26 @@ export async function getQueuePosition(userId: number) {
   return queuePosition;
 }
 
-export async function checkExistingProfile(vorname: string, nachname: string) {
+export async function checkExistingProfile(
+  vorname: string, 
+  nachname: string,
+  geburtsdatumDay: number,
+  geburtsdatumMonth: number,
+  geburtsdatumYear: number
+) {
+  // Convert input names to lowercase for case-insensitive comparison
+  const vornameLower = vorname.toLowerCase();
+  const nachnameLower = nachname.toLowerCase();
+  
   const result = await db
     .select({ id: appointmentProfiles.id })
     .from(appointmentProfiles)
     .where(and(
-      eq(appointmentProfiles.vorname, vorname),
-      eq(appointmentProfiles.nachname, nachname)
+      sql`LOWER(${appointmentProfiles.vorname}) = ${vornameLower}`,
+      sql`LOWER(${appointmentProfiles.nachname}) = ${nachnameLower}`,
+      eq(appointmentProfiles.geburtsdatumDay, geburtsdatumDay),
+      eq(appointmentProfiles.geburtsdatumMonth, geburtsdatumMonth),
+      eq(appointmentProfiles.geburtsdatumYear, geburtsdatumYear)
     ))
     .limit(1);
 

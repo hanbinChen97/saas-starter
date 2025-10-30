@@ -14,6 +14,7 @@ export default function DonationMarquee() {
       <span className="mx-8">💰 感谢 @梨园摘樱桃 的打赏支持！</span>
       <span className="mx-8">💰 感谢 匿名留子 *** 的打赏支持！</span>
       <span className="mx-8">💰 感谢 匿名留子 *** 的打赏支持！</span>
+      <span className="mx-8">💰 感谢 一口一碗凉粉 的打赏支持！</span>
     </Marquee>
   );
 }

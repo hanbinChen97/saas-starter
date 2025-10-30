@@ -10,6 +10,7 @@ import { AppointmentProfile } from '@/app/lib/db/schema';
 import { cancelAppointment } from '../main/actions';
 import { updateProfileEmail } from './actions';
 import { Input } from '@/app/components/ui/input';
+import DonationCard from '../components/DonationCard';
 
 interface QueueInfo {
   position: number;
@@ -306,8 +307,8 @@ export default function ProfilePage() {
                 </div>
               )}
               
-              {/* Cancel button - only show if appointment status is waiting or booked */}
-              {(profile.appointmentStatus === 'waiting' || profile.appointmentStatus === 'booked') && (
+              {/* Cancel button - only show if appointment status is waiting */}
+              {profile.appointmentStatus === 'waiting' && (
                 <div className="pt-4 border-t">
                   <Button
                     variant="destructive"
@@ -325,6 +326,14 @@ export default function ProfilePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Donation card - only show if appointment status is booked */}
+          {profile.appointmentStatus === 'booked' && (
+            <DonationCard 
+              title="预约成功！喜欢我们的服务吗？"
+              className="md:col-span-2"
+            />
+          )}
 
           {/* 排队信息 */}
           {queueInfo && profile.appointmentStatus === 'waiting' && (

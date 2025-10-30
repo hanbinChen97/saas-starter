@@ -1,7 +1,7 @@
 # SuperC Profile Page Specification
 
 ## Overview
-SuperC 个人资料页面，展示
+SuperC 个人资料页面，展示不同的状况：
 - 用户的预约信息
 - 未找到预约信息时的提示
 - 当前状态和排队信息
@@ -24,15 +24,14 @@ profile/
 - **功能**: 显示用户预约档案和状态管理
 
 ### 页面结构
-- **Header**: SuperCHeader 导航组件
 - **Loading State**: 加载动画
 - **No Profile State**: 未找到预约信息提示
+- **Header**: SuperCHeader 导航组件
 - **Main Content**: 
   - 页面标题
   - 成功/错误消息显示
   - 基本信息卡片
-  - 预约状态卡片
-  - 排队信息卡片（如有）
+  - 排队信息卡片 / 错误状态处理 / 成功预约信息
 
 #### Booked State
 ![alt text](../../../assets/supaC/booked.png)
@@ -73,19 +72,6 @@ profile/
 - **cancelAppointment**: Server Action，取消用户预约
 - **updateProfileEmail**: Server Action，更新用户邮箱地址
 
-## Data Types
-
-### AppointmentProfile
-- **vorname, nachname**: 姓名信息
-- **email, phone**: 联系方式
-- **geburtsdatumDay/Month/Year**: 出生日期
-- **preferredLocations**: 偏好地点
-- **appointmentStatus**: 预约状态（waiting/booked）
-- **appointmentDate**: 预约时间
-
-### QueueInfo
-- **position**: 排队位置
-- **estimatedWaitTime**: 预计等待时间
 
 ## Page States
 

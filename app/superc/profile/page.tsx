@@ -11,6 +11,10 @@ import { cancelAppointment } from '../main/actions';
 import { updateProfileEmail } from './actions';
 import { Input } from '@/app/components/ui/input';
 import DonationCard from '../components/DonationCard';
+import PayPalButton from '../components/PayPalButton';
+import StatusError from './components/StatusError';
+import StatusBooked from './components/StatusBooked';
+import StatusWaiting from './components/StatusWaiting';
 
 interface QueueInfo {
   position: number;
@@ -241,54 +245,14 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Error status - allow email update */}
               {profile.appointmentStatus === 'error' && (
-                <div className="pt-4 border-t border-red-200 bg-red-50 -mx-6 px-6 py-4">
-                  <div className="flex items-start space-x-2 mb-4">
-                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="text-sm font-semibold text-red-900 mb-1">
-                        预约出现错误
-                      </h3>
-                      <p className="text-sm text-red-700 mb-3">
-                        您的预约信息处理失败，可能是邮箱地址有误。请更新您的邮箱地址以继续。
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">
-                        当前邮箱
-                      </label>
-                      <p className="text-sm text-gray-900 bg-white px-3 py-2 rounded border border-gray-200">
-                        {profile.email || '未设置'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">
-                        新邮箱地址
-                      </label>
-                      <Input
-                        type="email"
-                        placeholder="请输入新的邮箱地址"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        className="w-full"
-                        disabled={updatingEmail}
-                      />
-                    </div>
-                    
-                    <Button
-                      onClick={handleUpdateEmail}
-                      disabled={updatingEmail || !newEmail}
-                      className="w-full bg-orange-600 hover:bg-orange-700"
-                    >
-                      {updatingEmail ? '更新中...' : '更新邮箱并恢复预约'}
-                    </Button>
-                  </div>
-                </div>
+                <StatusError 
+                  email={profile.email}
+                  newEmail={newEmail}
+                  setNewEmail={setNewEmail}
+                  handleUpdateEmail={handleUpdateEmail}
+                  updatingEmail={updatingEmail}
+                />
               )}
 
               <div>
@@ -298,31 +262,14 @@ export default function ProfilePage() {
                   <span className="text-gray-900">{profile.preferredLocations || 'SuperC'}</span>
                 </div>
               </div>
-              {profile.appointmentDate && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">预约时间</label>
-                  <p className="text-gray-900">
-                    {new Date(profile.appointmentDate).toLocaleString('zh-CN')}
-                  </p>
-                </div>
-              )}
+
+              {profile.appointmentStatus === 'booked' && <StatusBooked profile={profile} />}
               
-              {/* Cancel button - only show if appointment status is waiting */}
               {profile.appointmentStatus === 'waiting' && (
-                <div className="pt-4 border-t">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleCancelAppointment}
-                    disabled={cancelling}
-                    className="w-full"
-                  >
-                    {cancelling ? '取消中...' : '取消预约'}
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    取消预约后，您的排队位置将会丢失
-                  </p>
-                </div>
+                <StatusWaiting 
+                  handleCancelAppointment={handleCancelAppointment}
+                  cancelling={cancelling}
+                />
               )}
             </CardContent>
           </Card>

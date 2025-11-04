@@ -9,12 +9,14 @@ import { checkExistingProfile } from '@/app/lib/db/queries';
 import { redirect } from 'next/navigation';
 
 const createUserProfileSchema = z.object({
-  vorname: z.string().min(1, 'Vorname ist erforderlich'),
-  nachname: z.string().min(1, 'Nachname ist erforderlich'),
+  vorname: z.string().trim().min(1, 'Vorname ist erforderlich'),
+  nachname: z.string().trim().min(1, 'Nachname ist erforderlich'),
   phone: z.string()
+    .trim()
     .min(1, 'Telefonnummer ist erforderlich')
     .regex(/^0\d{5,14}$/, 'Telefonnummer muss mit 0 beginnen und zwischen 6 und 15 Ziffern enthalten (z.B. 0123456789)'),
   email: z.string()
+    .trim()
     .min(1, 'E-Mail-Adresse ist erforderlich')
     .email('Bitte geben Sie eine gültige E-Mail-Adresse ein'),
   geburtsdatumDay: z.string().transform((val) => parseInt(val)).pipe(z.number().min(1).max(31)),

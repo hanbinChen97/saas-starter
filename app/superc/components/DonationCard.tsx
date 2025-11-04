@@ -23,6 +23,9 @@ export default function DonationCard({ title = "喜欢我们的服务吗？", cl
           <p className="text-gray-600 mb-4">
             如果您对我们的 SupaC 服务满意，欢迎请我们喝杯咖啡！☕
           </p>
+          <p className="text-xs text-gray-500 mb-4">
+            添加说明：PayPal 转账的时候，请选择向朋友转账，避免手续费。
+          </p>
           <Button
             asChild
             variant="outline"

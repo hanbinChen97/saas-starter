@@ -180,9 +180,9 @@ export async function checkExistingProfile(
   geburtsdatumMonth: number,
   geburtsdatumYear: number
 ) {
-  // Convert input names to lowercase for case-insensitive comparison
-  const vornameLower = vorname.toLowerCase();
-  const nachnameLower = nachname.toLowerCase();
+  // Trim whitespace and convert input names to lowercase for case-insensitive comparison
+  const vornameLower = vorname.trim().toLowerCase();
+  const nachnameLower = nachname.trim().toLowerCase();
   
   const result = await db
     .select({ id: appointmentProfiles.id })
